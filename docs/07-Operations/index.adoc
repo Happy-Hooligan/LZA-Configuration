@@ -94,6 +94,7 @@ AWS Systems Manager (SSM) Runbooks can be leveraged to automate common operation
 * *Troubleshooting*: Streamline investigation of common issues
 
 Example use cases for SSM automation:
+
 * Generating inventory reports of accounts and resources
 * Creating documentation of network configurations
 * Validating security controls across accounts
@@ -151,7 +152,8 @@ Organizations should supplement these guides with additional documentation speci
 
 Consider using SSM Automation Documents to help generate and maintain this documentation:
 
-```yaml
+[yaml]
+----
 # Example SSM Document to generate environment documentation
 schemaVersion: '0.3'
 description: Generate documentation of current LZA environment
@@ -163,7 +165,7 @@ mainSteps:
       Api: ListOrganizationalUnitsForParent
       ParentId: "{{RootId}}"
     # Additional steps to gather and format documentation
-```
+----
 
 == Adding a VPC and VPC Templates
 

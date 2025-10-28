@@ -64,7 +64,9 @@ While the Universal Configuration replicates all CloudWatch Log Groups by defaul
 * Reducing costs by not centralizing low-value logs
 * Managing sandbox environments separately from production monitoring
 
-The exclusion configuration provides granular control over what data is centralized, enabling organizations to balance security requirements with cost optimization. For detailed exclusion options, refer to the [LZA CloudWatch Logs Configuration documentation](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interfaces/___packages__aws_accelerator_config_lib_models_global_config.ICloudWatchLogsConfig.html#exclusions).
+The exclusion configuration provides granular control over what data is centralized, enabling organizations to balance security requirements with cost optimization. For detailed exclusion options, refer to the https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/interface/_packagesaws_accelerator_config_lib_models_global_config.ICloudWatchLogsConfig.html#exclusions[LZA CloudWatch Logs Configuration documentation].
+
+
 
 == Application Logging
 
@@ -103,23 +105,25 @@ CloudTrail records AWS API calls and related events made by or on behalf of your
 
 As noted in the `global-config.yaml` file:
 
-```yaml
+[yaml]
+----
 # In Control Tower based environment, the organization-level CloudTrail trail is managed by Control Tower
 # LZA CloudTrail settings are disabled to avoid duplication
 cloudtrail:
   enable: false
   organizationTrail: false
-```
+----
 
 This configuration aligns with the Control Tower settings defined in the same file:
 
-```yaml
+[yaml]
+----
 controlTower:
   enable: true
   landingZone:
     logging:
       organizationTrail: true
-```
+----
 
 By leveraging Control Tower's organization trail capabilities, the Universal Configuration ensures comprehensive API logging across all accounts in the organization without creating duplicate trails. This approach provides efficient, centralized security logging while optimizing cost.
 
@@ -136,13 +140,14 @@ Session Manager offers several security benefits:
 
 The Universal Configuration enables comprehensive logging for Session Manager sessions:
 
-```yaml
+[yaml]
+----
 sessionManager:
   sendToCloudWatchLogs: true
   sendToS3: false
   attachPolicyToIamRoles:
     - EC2-Default-SSM-Role
-```
+----
 
 Session logs are sent to CloudWatch Logs in each account region and are then automatically replicated to the central S3 bucket through the CloudWatch Logs replication mechanism. While Session Manager can directly log to S3, this option is disabled to avoid duplication since log groups are already being replicated.
 
@@ -156,7 +161,8 @@ Network logs provide critical visibility into traffic flows, security events, an
 
 VPC Flow Logs capture information about IP traffic going to and from network interfaces within an AWS VPC. The Universal Configuration enables flow logging for all VPCs with the following settings as defined in the `network-config.yaml` file:
 
-```yaml
+[yaml]
+----
 vpcFlowLogs:
   trafficType: ALL
   maxAggregationInterval: 600
@@ -171,7 +177,7 @@ vpcFlowLogs:
     - account-id
     - interface-id
     # Additional fields included...
-```
+----
 
 Key aspects of this configuration include:
 
@@ -191,13 +197,14 @@ The AWS Network Firewall deployed by the LZA Universal Configuration generates t
 
 Both log types are configured to send to CloudWatch Logs:
 
-```yaml
+[yaml]
+----
 loggingConfiguration:
   - destination: cloud-watch-logs
     type: ALERT
   - destination: cloud-watch-logs
     type: FLOW
-```
+----
 
 These logs are then automatically forwarded to the centralized S3 bucket through the CloudWatch Logs replication mechanism, with specific prefixes applied based on the dynamic partitioning configuration:
 
@@ -208,7 +215,8 @@ These logs are then automatically forwarded to the centralized S3 bucket through
 
 The Universal Configuration also establishes S3 buckets for storing Elastic Load Balancer logs and general access logs in the LogArchive account. These buckets include lifecycle rules to manage the data effectively:
 
-```yaml
+[yaml]
+----
 accessLogBucket:
   lifecycleRules:
     - enabled: true
@@ -218,7 +226,7 @@ accessLogBucket:
       transitions:
         - storageClass: GLACIER_IR
           transitionAfter: 365
-```
+----
 
 The lifecycle rules ensure cost-effective storage by:
 
@@ -232,7 +240,7 @@ This approach balances the need for log retention with cost optimization.
 
 While logs provide detailed information about specific events, metrics offer aggregated data points that help monitor the health and performance of your AWS environment. AWS CloudWatch Metrics is a regional service that collects and tracks metrics for AWS resources within each account and region.
 
-### CloudWatch Metrics
+=== CloudWatch Metrics
 
 Most AWS services automatically create metrics in the AWS account and AWS region where they're provisioned. These metrics provide valuable data points for monitoring system health, performance, security, and usage patterns. CloudWatch metrics can be used for:
 
@@ -244,7 +252,7 @@ Most AWS services automatically create metrics in the AWS account and AWS region
 
 Organizations can leverage these metrics through CloudWatch Dashboards to create visual representations of their environment's health and performance.
 
-### CloudWatch Alarms
+=== CloudWatch Alarms
 
 CloudWatch Alarms monitor metrics and trigger actions when metrics breach defined thresholds. The LZA solution enables organizations to create consistent alarm configurations across multiple regions and accounts, streamlining the monitoring process.
 

@@ -31,7 +31,8 @@ The LZA Universal Configuration networking architecture delivers significant bus
 * *Operational Efficiency:* Leverages standardized templates and automation to streamline network provisioning processes, reducing the "undifferentiated heavy lifting" as described in AWS documentation
 
 * *Compliance Readiness:* Aligns with AWS best practices and multiple global compliance frameworks through built-in logging, monitoring, and traffic inspection capabilities
-Business Agility: Enables rapid workload deployment while maintaining enterprise-grade security controls through automated provisioning
+
+* *Business Agility*: Enables rapid workload deployment while maintaining enterprise-grade security controls through automated provisioning
 
 === Strategic Considerations
 
@@ -42,7 +43,8 @@ Business Agility: Enables rapid workload deployment while maintaining enterprise
 * *Scalability Investment:* Architecture follows AWS-recommended hub-and-spoke model, supporting growth from hundreds to thousands of accounts without requiring significant redesign
 
 * *Operational Excellence:* Reduces operational complexity through centralized management, helping network teams focus on strategic initiatives rather than routine maintenance
-Cost Management: Provides improved cost visibility and control through centralized networking resources, helping organizations optimize their AWS networking spend
+
+* *Cost Management:* Provides improved cost visibility and control through centralized networking resources, helping organizations optimize their AWS networking spend
 
 == Selecting the Right Network Architecture
 
@@ -583,6 +585,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/vpc-sharing.html[Shared VPC] is
 Shared VPC uses https://docs.aws.amazon.com/ram/latest/userguide/what-is.html[AWS Resource Access Manager (RAM)] to share specific subnets with designated accounts. Resource Access Manager is a service that enables you to securely share AWS resources with other AWS accounts or within your AWS Organization. In the context of Shared VPC, RAM allows the VPC owner to share specific subnets with other accounts, enabling those accounts to create resources like EC2 instances, RDS databases, and Lambda functions in the shared subnets.
 
 RAM provides fine-grained control over:
+
 * Which resources are shared
 * Which accounts have access to shared resources
 * What actions participants can take with shared resources

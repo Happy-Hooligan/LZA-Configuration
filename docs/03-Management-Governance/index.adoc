@@ -69,7 +69,7 @@ The Test OU contains accounts used for formal validation, quality assurance, and
 Test accounts typically contain sensitive data and workloads similar to production but in a controlled testing context.  This environment is critical for validating both application functionality and infrastructure changes before they reach production systems.
 
 ====== Prod
-The Prod (Production) OU contains accounts that host business and missing-critical applications and services for business operations. This OU implements the strictest security controls, change management processes, and access restrictions. Production accounts typically have enhanced monitoring, more aggressive backup schedules, and stricter network controls than other environments.
+The Prod (Production) OU contains accounts that host business and mission-critical applications and services for business operations. This OU implements the strictest security controls, change management processes, and access restrictions. Production accounts typically have enhanced monitoring, more aggressive backup schedules, and stricter network controls than other environments.
 
 Accounts in the Prod OU are ideally locked down with only specific Operations and Security personnel having access. Due to the critical nature of these workloads, changes to Production accounts and resources should require additional approval steps and formal change management processes.
 
@@ -131,7 +131,7 @@ AWS Control Tower offers two approaches to Regional deny:
 * **Landing Zone Level Region Deny**: Applied broadly across your AWS Control Tower environment
 * **OU Level Region Deny**: More granular control that can be applied to specific Organizational Units
 
-For detailed information on implementing and managing Control Tower Regional Deny controls, refer to the link:../07-Operations/07-06-Control-Tower-Regional-Deny.adoc[Control Tower Regional Deny Operations Guide].
+For detailed information on implementing and managing Control Tower Regional Deny controls, refer to the link:../07-Operations/07-07-Control-Tower-Regional-Deny.adoc[Control Tower Regional Deny Operations Guide].
 
 Control Tower provides several key benefits that are enhanced by the Landing Zone Accelerator:
 
@@ -232,7 +232,7 @@ This architecture creates a security-focused boundary that enables comprehensive
 
 ===== SharedServices Account
 
-The ShareService account allows customers to deliver common infrastructure services across your organization. Without this centralized approach, organizations typically experience inconsistent service implementations, increased management overhead, and higher costs due to service duplication.
+The SharedServices account allows customers to deliver common infrastructure services across your organization. Without this centralized approach, organizations typically experience inconsistent service implementations, increased management overhead, and higher costs due to service duplication.
 
 The LZA Universal Config configures this account as the operations center for your AWS environment, implementing:
 

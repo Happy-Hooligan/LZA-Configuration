@@ -51,7 +51,9 @@ When organizing your SCPs, consider the following grouping strategies:
 Within your repository structure, consider maintaining SCPs in a dedicated directory with clear naming conventions:
 
 ==== Example Directory Structure
-```
+
+[shell]
+----
 /lza-config
   /policies
     /service-control-policies
@@ -62,7 +64,7 @@ Within your repository structure, consider maintaining SCPs in a dedicated direc
         require-resource-tags.json
       /compliance
         pci-dss-controls.json
-```
+----
 
 === Implementing SCPs in LZA: Step-by-Step Guide
 
@@ -79,7 +81,9 @@ Within your repository structure, consider maintaining SCPs in a dedicated direc
    * Create a new service control policy JSON file in your policies directory
    * Follow AWS SCP syntax and best practices
    * Example structure:
-```json
+
+[json]
+----
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -98,14 +102,16 @@ Within your repository structure, consider maintaining SCPs in a dedicated direc
     }
   ]
 }
-```
+----
 
 4. *Configure in IAM Config*:
    * Add a reference to your new SCP in the `policySets` section of the `iam-config.yaml` file
    * Set `deploymentTargets` initially to test accounts using the `accounts` option
    * Optionally limit regional deployment with `excludedRegions` parameter
    * Example configuration:
-```yaml
+
+[yaml]
+----
 serviceControlPolicies:
   - name: RequireS3EncryptionSCP
     description: "Enforces encryption for all S3 buckets"
@@ -118,7 +124,7 @@ serviceControlPolicies:
     # Once tested, expand to organizational units:
     # organizationalUnits:
     #   - Workloads
-```
+----
 
 5. *Test and Validate*:
    * Run local validation if available: `yarn validate-config`
@@ -140,10 +146,10 @@ serviceControlPolicies:
 8. *Rollback Process*:
    * If an SCP produces unexpected results, you can use your version control system to revert to the last known good configuration
    * The rollback procedure should include:
-     1. Identify the commit/version to roll back to
-     2. Create a new branch from that commit
-     3. Create an emergency PR to deploy the rollback
-     4. Deploy the rollback through your pipeline
+     *** Identify the commit/version to roll back to
+     *** Create a new branch from that commit
+     *** Create an emergency PR to deploy the rollback
+     *** Deploy the rollback through your pipeline
    * Document the issue and lessons learned for future SCP implementations
 
 === SCP Version Control and Lifecycle Management
@@ -168,7 +174,8 @@ LZA implements a security-first approach by blacklisting certain AWS services by
 
 The default implementation uses a policy similar to:
 
-```json
+[json]
+----
 {
   "Sid": "RiskyServices",
   "Effect": "Deny",
@@ -187,7 +194,7 @@ The default implementation uses a policy similar to:
     }
   }
 }
-```
+----
 
 This policy prevents the use of Amazon Lightsail, Amazon GameLift, and Amazon AppFlow services across the organization, with exceptions for LZA automation roles.
 
@@ -273,7 +280,9 @@ Leverage IAM condition keys to create dynamic, context-aware SCPs:
 * `aws:ResourceTag` - Control actions based on resource tags
 
 Example of region restriction policy:
-```json
+
+[json]
+----
 {
   "Version": "2012-10-17", 
   "Statement": [
@@ -330,7 +339,7 @@ Example of region restriction policy:
     }
   ]
 }
-```
+----
 
 == SCP Troubleshooting Guide
 
@@ -386,7 +395,8 @@ Have a predefined process for addressing emergency SCP issues:
 
 === Data Protection SCPs
 
-```json
+[json]
+----
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -418,11 +428,12 @@ Have a predefined process for addressing emergency SCP issues:
     }
   ]
 }
-```
+----
 
 === Resource Protection SCPs
 
-```json
+[json]
+----
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -446,7 +457,7 @@ Have a predefined process for addressing emergency SCP issues:
     }
   ]
 }
-```
+----
 
 These templates provide starting points for common security controls that you can adapt to your organization's specific requirements.
 
@@ -477,7 +488,8 @@ Document each SCP thoroughly with:
 * Version history
 
 Example documentation header format for SCP JSON files:
-```json
+[json]
+----
 {
   "metadata": {
     "name": "RequireS3Encryption",
@@ -493,7 +505,7 @@ Example documentation header format for SCP JSON files:
     // Policy statements here
   ]
 }
-```
+----
 
 === Integrating SCPs with AWS Control Tower
 

@@ -26,7 +26,8 @@ AWS Managed Microsoft AD is a fully managed, highly available Microsoft Active D
 
 To implement AWS Managed Microsoft AD through LZA, you need to modify your `iam-config.yaml` file to include `managedActiveDirectories` configuration:
 
-```yaml
+[yaml]
+----
 managedActiveDirectories:
   - name: example-mad
     account: SharedServices
@@ -52,13 +53,14 @@ managedActiveDirectories:
     #   imagePath: /aws/service/ami-windows-latest/Windows_Server-2019-English-Full-Base
     #   securityGroupInboundSources:
     #     - 10.0.0.0/16
-```
+----
 
 This configuration:
-- Creates a Managed Microsoft AD in the SharedServices account
-- Deploys it across two private subnets in the Network-Main-Shared VPC
-- Stores the administrative credentials in Secrets Manager in the Management account
-- Optionally configures an EC2 instance for AD administration
+
+* Creates a Managed Microsoft AD in the SharedServices account
+* Deploys it across two private subnets in the Network-Main-Shared VPC
+* Stores the administrative credentials in Secrets Manager in the Management account
+* Optionally configures an EC2 instance for AD administration
 
 ==== 2. Deploy the Configuration
 
@@ -72,7 +74,8 @@ After modifying the `iam-config.yaml` file:
 
 After the initial deployment succeeds, you can enhance the configuration with an Active Directory administration instance:
 
-```yaml
+[yaml]
+----
 managedActiveDirectories:
   - name: example-mad
     # Previous configuration...
@@ -88,7 +91,7 @@ managedActiveDirectories:
           scriptFilePath: ad-scripts/join-domain.ps1
         - scriptName: Install-Tools
           scriptFilePath: ad-scripts/install-tools.ps1
-```
+----
 
 This configuration deploys an EC2 instance with Windows Server that can be used for Active Directory administration. The user data scripts can automate domain joining and tool installation.
 
@@ -114,7 +117,9 @@ LZA does not provide direct configuration for AD Connector deployment. It must b
    * Note the Directory ID (d-xxxxxxxxxx) for IAM Identity Center configuration
 
 3. *Integration with IAM Identity Center using LZA*:
-```yaml
+
+[yaml]
+----
 identityCenter:
   delegatedAdminAccount: SharedServices
   name: accelerator-identity-center
@@ -122,7 +127,7 @@ identityCenter:
   permissionSets: []
   # Assignment configurations
   assignments: []
-```
+----
 
 Once deployed in SharedServices, AD Connector can provide organization-wide identity management with centralized authentication for all accounts in your AWS Organization.
 
@@ -136,7 +141,8 @@ AWS IAM Identity Center (formerly AWS SSO) provides single sign-on access to AWS
 
 ==== 1. Configure IAM Identity Center in iam-config.yaml
 
-```yaml
+[yaml]
+----
 identityCenter:
   delegatedAdminAccount: SharedServices
   name: accelerator-identity-center
@@ -169,12 +175,13 @@ identityCenter:
       deploymentTargets:
         organizationalUnits:
           - Workloads
-```
+----
 
 This configuration:
-- Sets up the IAM Identity Center configuration in LZA
-- Creates permission sets that define access levels
-- Assigns these permission sets to Active Directory users and groups
+
+* Sets up the IAM Identity Center configuration in LZA
+* Creates permission sets that define access levels
+* Assigns these permission sets to Active Directory users and groups
 
 [IMPORTANT]
 ====
@@ -186,7 +193,8 @@ The directory integration (connecting IAM Identity Center to your Active Directo
 After the initial configuration, you can manage permission sets and assignments through updates to `iam-config.yaml`:
 
 1. *Adding New Permission Sets*:
-```yaml
+[yaml]
+----
 permissionSets:
   # Existing permission sets...
   - name: DatabaseAdministrator
@@ -196,10 +204,12 @@ permissionSets:
         - AmazonDynamoDBFullAccess
       customerManaged:
         - DatabaseAccessPolicy
-```
+----
 
 2. *Creating New Assignments*:
-```yaml
+
+[yaml]
+----
 assignments:
   # Existing assignments...
   - name: DatabaseAdmin-Assignment
@@ -209,7 +219,7 @@ assignments:
     deploymentTargets:
       accounts:
         - Database
-```
+----
 
 == Additional Resources
 

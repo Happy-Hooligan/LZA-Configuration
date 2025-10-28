@@ -732,15 +732,13 @@ The Config rules in the LZA Universal Configuration align with industry security
 
 Beyond simply detecting non-compliant resources, the LZA Universal Configuration implements automated remediation capabilities that can automatically correct security issues without human intervention.
 
-This advanced capability transforms AWS Config from a passive monitoring tool into an active enforcement mechanism that can maintain your security posture even as your environment changes. When a non-compliant resource is detected, the automated remediation process.
+This advanced capability transforms AWS Config from a passive monitoring tool into an active enforcement mechanism that can maintain your security posture even as your environment changes. When a non-compliant resource is detected, the automated remediation process runs.
 
 == Identity and Access Management
 
 The LZA Universal Configuration implements a sophisticated identity and access management framework that addresses the fundamental security challenge of modern cloud environments—creating robust protection while enabling operational agility. Unlike traditional approaches that create an adversarial relationship between security and operations, this framework establishes a governance model where strong security controls actually enhance operational capabilities rather than hindering them.
 
 === Enterprise Authentication through IAM Identity Center
-
-The LZA Universal Configuration establishes AWS IAM Identity Center (formerly AWS Single Sign-On) as the cornerstone of human access management, creating a unified authentication framework that integrates with your existing enterprise identity provider.
 
 The LZA Universal Configuration establishes AWS IAM Identity Center as the cornerstone of human access management, creating a unified authentication framework that integrates with your existing enterprise identity provider.
 
