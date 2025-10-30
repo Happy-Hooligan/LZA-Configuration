@@ -1,0 +1,7 @@
+.*/node_modules/
+
+# AWS Security Contact email
+SECURITY.md:6
+
+# Confidentiality tag suggestions
+docs/03-Management-Governance/index.adoc:340

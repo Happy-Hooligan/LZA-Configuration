@@ -62,12 +62,12 @@ workloadAccounts:
 
 Utilize plus addressing for centralized management of AWS notifications:
 
-* Format: `aws+[account-name]@yourdomain.com`
+* Format: `aws+[account-name]@example.com`
 * Examples:
-  * `aws+infra-prod-01@yourdomain.com`
-  * `aws+marketing-dev-03@yourdomain.com`
+  * `aws+infra-prod-01@example.com`
+  * `aws+marketing-dev-03@example.com`
   
-All notifications will be delivered to the base address (`aws@yourdomain.com`), while maintaining unique email addresses for each account.
+All notifications will be delivered to the base address (`aws@example.com`), while maintaining unique email addresses for each account.
 
 === 4. Deploy Changes
 
