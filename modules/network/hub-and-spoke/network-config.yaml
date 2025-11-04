@@ -601,7 +601,7 @@ vpcs:
       - ipamPoolName: "{{ AcceleratorPrefix }}-{{ HomeRegion }}-ipam-inspection-pool"
         netmaskLength: {{ HomeRegionInspectionVpcMaskLength }}
     defaultSecurityGroupRulesDeletion: true
-    internetGateway: true
+    internetGateway: false
     enableDnsHostnames: true
     enableDnsSupport: true
     instanceTenancy: default
