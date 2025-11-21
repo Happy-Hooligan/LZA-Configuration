@@ -55,12 +55,12 @@ The Suspended OU creates a secure containment zone for accounts that have been d
 The Workloads OU creates a hierarchical structure for business applications that aligns with the software development lifecycle, establishing clear boundaries between infrastructure and application environments. The LZA Universal Config implements this structure to address the common challenges of inconsistent security controls across development stages and difficulties in implementing progressive governance. By organizing accounts into sub-OUs representing distinct lifecycle phases (Sandbox, Dev, Test, Prod), this design creates a structured progression of security controls that match application maturity while enabling unified governance policies. This approach simplifies account provisioning, facilitates appropriate compliance controls at each stage, and provides clear isolation between environments—all while supporting efficient cost attribution and organizational scaling.
 
 ====== Sandbox
-The Sandbox OU provides isolated environments for experimentation, learning, and proof-of-concept development. This OU typically has the most permissive policies of the workload environments, allowing developers and cloud practitioners to explore AWS services and build skills in a contained environment. While providing greater flexibility, the Sandbox OU still enforces fundamental security guardrails through SCPs to prevent exposed credentials, unencrypted data, or uncontrolled spending. 
+The Sandbox OU provides isolated environments for experimentation, learning, and proof-of-concept development. This OU typically has the most permissive policies of the workload environments, allowing developers and cloud practitioners to explore AWS services and build skills in a contained environment. While providing greater flexibility, the Sandbox OU still enforces fundamental security guardrails through SCPs to prevent exposed credentials, unencrypted data, or uncontrolled spending.
 
 Sandbox accounts are typically network-isolated from other accounts within the organization—they are not connected to VPCs hosting development, test, production, or shared workloads, nor do they have on-premises network connectivity. Resources in the Sandbox OU should never contain sensitive data or production workloads.
 
 ====== Dev
-The Dev (Development) OU houses accounts used for the initial building and development of applications and services. Dev environments typically implement stronger controls than Sandbox environments but allow more flexibility than Test or Production. This OU provides the primary working environment for development teams while enforcing organizational standards for security and compliance. 
+The Dev (Development) OU houses accounts used for the initial building and development of applications and services. Dev environments typically implement stronger controls than Sandbox environments but allow more flexibility than Test or Production. This OU provides the primary working environment for development teams while enforcing organizational standards for security and compliance.
 
 The Dev OU often contains sensitive data and workloads, hosting development tools and line-of-business applications that are in active development. External access for these accounts is provided via the Perimeter account rather than direct internet connectivity. Dev environments may have connectivity to shared services but maintain restricted access to production resources and data to ensure appropriate separation.
 
@@ -291,7 +291,7 @@ The policy enforces that when resources are tagged with `BackupPlan`, the value 
 This policy applies to the following resource types across both Infrastructure and Workloads OUs:
 
 * EC2 instances - For compute workload protection
-* EBS volumes - For persistent storage protection 
+* EBS volumes - For persistent storage protection
 * DynamoDB tables - For NoSQL database protection
 * Amazon EFS file systems - For shared file system protection
 * Amazon FSx file systems - For specialized file system protection
