@@ -8,6 +8,9 @@
 :iconfont-name: icons
 
 [.lead]
+
+image:./assets/images/lza-uc-architecture.png[LZA Universal Config Architecture]
+
 == Introduction
 
 The Landing Zone Accelerator on AWS (LZA) Universal Configuration (UC) provides a ready-to-deploy, comprehensive foundation for establishing a secure, well-architected multi-account AWS environment built on AWS Control Tower. This solution addresses the critical challenge organizations face when scaling AWS adoption: establishing a consistent, secure, and compliant foundation without extensive cloud expertise or months of architectural design work.

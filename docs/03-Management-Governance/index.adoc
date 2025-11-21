@@ -22,6 +22,7 @@ By implementing the LZA Universal Config, organizations can reduce cloud foundat
 The LZA Universal Config delivers a production-grade AWS environment and organizational structure that aligns with AWS's multi-account strategy best practices.
 
 === AWS Organizations Configuration - link:../../modules/base/default/organization-config.yaml[organization-config.yaml]
+image:./assets/organization-and-account-structure.png[LZA UC Organizations Architecture]
 
 AWS Organizations forms the foundation of effective multi-account governance in the LZA Universal Config. Rather than leaving organizational design as a complex exercise, the LZA Universal Config delivers a pre-designed structure aligned with AWS best practices and years of enterprise implementation experience. This well-architected structure establishes the framework for security controls, enables consistent policy enforcement, creates clear boundaries between environments, and simplifies permissions management—all while preventing the fragmented security postures and inconsistent controls that typically plague manual implementations.
 
