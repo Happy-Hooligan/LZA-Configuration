@@ -29,6 +29,40 @@ Pre-configured LZA Universal Configuration files organized by the following depl
 
 Architecture guides, deployment procedures, and detailed design principles that explain the implementation rationale and configuration decisions, supported by architectural diagrams and technical documentation for secure multi-account AWS environments.
 
+### Cost
+
+You are responsible for the cost of the AWS services used while running this solution. As of this revision, the cost for running the Universal Configuration in its current form through the Landing Zone Accelerator on AWS with AWS Control Tower in the US East (N. Virginia) Region within a non-critical sandbox environment with no activity or workloads is approximately **$101.06 (USD)** each month.
+
+We recommend creating a budget through AWS Cost Explorer to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this solution.
+
+## Sample Cost Table
+
+The following table provides a sample cost breakdown for deploying this solution with the default parameters in the US East (N. Virginia) Region, with no activity, for one month.
+
+| AWS Service | Monthly Cost [USD] |
+|-------------|-------------------|
+| Amazon Network Firewall | $585.40 |
+| AWS CloudTrail | $29.46 |
+| AWS Config | $55.95 |
+| AWS KMS | $367.10 |
+| Amazon Kinesis | $61.85 |
+| Amazon Data Firehose | $2.99 |
+| Amazon S3 | $4.86 |
+| Amazon VPC | $458.53 |
+| Amazon CloudWatch | $22.21 |
+| AWS Security Hub | $221.92 |
+| Amazon GuardDuty | $10.84 |
+| Amazon Route 53 | $5.00 |
+| Amazon Macie | $7.16 |
+| AWS Secrets Manager | $0.44 |
+| AWS CodePipeline | $1.00 |
+| AWS CodeBuild | $1.52 |
+| **Total** | | **$1,842.08** |
+
+> **Note:** The VPC calculation is done if you're utilizing a hub-and-spoke topology. Data transfer, AWS CodeArtifact, Amazon Detective, Amazon DynamoDB, AWS Lambda, AWS Service Catalog, Amazon Simple Notification Service (Amazon SNS), Amazon Simple Queue Service (Amazon SQS), AWS Step Functions, and AWS Systems Manager are priced at the Free Tier or less than $0.01 each month.
+
+
+
 ### Scripts and CI/CD Integration
 
 Automation utilities for configuration management and environment setup, including account configuration generation and deployment helpers. The `.gitlab-ci.yml` file demonstrates how to integrate these configurations with CI/CD options for automated multi-environment deployments.
