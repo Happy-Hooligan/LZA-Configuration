@@ -36,7 +36,7 @@ enableOptInRegions: false
 controlTower:
   enable: true # Enables Control Tower
   landingZone:
-    version: "3.3" # Specifies the Control Tower landing zone version
+    version: "4.0" # Specifies the Control Tower landing zone version
     logging:
       loggingBucketRetentionDays: 365 # Retains general logs for Amazon S3 bucket in Control Tower
       accessLoggingBucketRetentionDays: 365 # Retains access logs for Amazon S3 bucket in Control Tower
