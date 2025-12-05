@@ -99,6 +99,12 @@ This section provides guidance on day-to-day operational tasks, including managi
 
 link:07-Operations/index.adoc[Go to Operations →]
 
+==== Region and Industry Guidance
+
+This section provides guidance on adapting the Universal Configuration to meet specific regional requirements and industry regulations. Organizations with specific compliance needs will find information about regional considerations and industry-specific controls that help customize the baseline configuration for their unique requirements.
+
+link:08-Region-and-Industry-Guidance/index.adoc[Go to Region and Industry Guidance →]
+
 === Key Configuration Files
 
 The LZA configuration consists of several YAML files that work together to define an AWS landing zone according to best practices:
