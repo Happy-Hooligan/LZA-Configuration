@@ -1,47 +1,147 @@
 ###############################################################################################################
+# Account Configuration for Landing Zone Accelerator on AWS                                                   #
 # For additional configurable services, features, and property descriptions,                                  #
 # please review the AccountConfig class reference in our TypeDoc:                                             #
 # https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/config/#account-configuration   #
+#                                                                                                             #
+# This configuration defines AWS accounts managed by LZA.                                                     #
+# - mandatoryAccounts: Required accounts for LZA/Control Tower (Management, LogArchive, Audit)                #
+# - workloadAccounts: Additional accounts created/managed by LZA                                              #
+# - accountIds: Maps existing AWS account IDs to emails for account identification                            #
+#                                                                                                             #
+# Note: The "name" field is a logical name used by LZA to reference accounts internally.                      #
+# It does not need to match the actual AWS account name. The email must match the real account.               #
+#                                                                                                             #
+# Control Tower 4.0 Note: Accounts are pre-created before CT deployment and designated as                     #
+# LogArchive/Audit during CT setup. The LZA logical names (LogArchive, Audit) map to your                     #
+# CT-designated accounts regardless of the actual AWS account name.                                           #
 ###############################################################################################################
 
+###############################################################################################################
+# Account IDs                                                                                                 #
+# Maps existing AWS account IDs to their email addresses. Required for LZA to identify and                    #
+# manage existing accounts. Add any pre-existing accounts here before referencing them in                     #
+# workloadAccounts.                                                                                           #
+###############################################################################################################
+accountIds:
+  # Delegate Administrator Accounts
+  - accountId: "123456789012" # UPDATE: IdentityCenter-DelegateAdministrator account ID
+    email: <identity-center-delegated-admin-email> # UPDATE: Must match email in workloadAccounts
+
+  # Finance Accounts
+  - accountId: "123456789012" # UPDATE: FinOps-Workspace account ID
+    email: <finops-workspace-email> # UPDATE: Must match email in workloadAccounts
+
+  #############################################################################################################
+  # Add additional existing accounts here:                                                                    #
+  # - accountId: "123456789012"                                                                               #
+  #   email: account-email@example.com                                                                        #
+  #############################################################################################################
+
+###############################################################################################################
+# Mandatory Accounts                                                                                          #
+# These accounts are required by LZA and Control Tower.                                                       #
+# WARNING: Do not change the "name" field - LZA uses these exact names internally.                            #
+#                                                                                                             #
+# Control Tower 4.0 Account Mapping:                                                                          #
+#   - Management  → Your CT Management account (Root OU)                                                      #
+#   - LogArchive  → Your CT-designated log archive account (AWS account name: CloudTrail)                     #
+#   - Audit       → Your CT-designated audit account (AWS account name: Config)                               #
+###############################################################################################################
 mandatoryAccounts:
-  # We recommend you do not change mandatory account names. These are used within Landing Zone Accelerator to reference the accounts from other config files.
-  # The "name" value does not currently support spaces
-  # The "name" value DOES NOT need to match the account name
   - name: Management
     description: >-
-      The management (primary) account. Do not change the name field for this
-      mandatory account. Note, the account name key does not need to match the
-      AWS account name.
-    email: <management>@example.com  <----- UPDATE EMAIL ADDRESS
+      The management (primary) account that hosts AWS Organizations, Control Tower, and the
+      LZA pipeline. This account has organization-wide administrative privileges and should
+      have highly restricted access. Only platform/cloud team admins should have access.
+    email: <management-account-email> # UPDATE: Email of your management account
     organizationalUnit: Root
+
   - name: LogArchive
     description: >-
-      The log archive account. Do not change the name field for this mandatory
-      account. Note, the account name key does not need to match the AWS account
-      name.
-    email: <log-archive>@example.com  <----- UPDATE EMAIL ADDRESS
+      Centralized logging account (AWS account name: CloudTrail). Designated as the Log Archive
+      account during Control Tower 4.0 setup. Receives AWS CloudTrail logs, AWS Config logs,
+      and other security/compliance logs from all accounts in the organization. Access should
+      be restricted to security and compliance teams for log analysis and forensic investigations.
+    email: <cloudtrail-account-email> # UPDATE: Email of your CloudTrail account in Security OU
     organizationalUnit: Security
+
   - name: Audit
     description: >-
-      The security audit account (also referred to as the audit account). Do not
-      change the name field for this mandatory account. Note, the account name
-      key does not need to match the AWS account name.
-    email: <audit>@example.com  <----- UPDATE EMAIL ADDRESS
+      Security audit and delegated administrator account (AWS account name: Config). Designated
+      as the Audit account during Control Tower 4.0 setup. Serves as the delegated administrator
+      for centralized security services including SecurityHub, GuardDuty, Macie, and IAM Access
+      Analyzer. Also hosts AWS Config aggregation. Used by security teams for cross-account
+      security monitoring, compliance assessment, and incident response.
+    email: <config-account-email> # UPDATE: Email of your Config account in Security OU
     organizationalUnit: Security
+
+###############################################################################################################
+# Workload Accounts                                                                                           #
+# Additional accounts managed by LZA. These accounts receive SCPs and security services                       #
+# based on their OU membership.                                                                               #
+#                                                                                                             #
+# For existing accounts:                                                                                      #
+#   1. Add the account ID and email to the accountIds section above                                           #
+#   2. Add the account details here with matching email                                                       #
+###############################################################################################################
 workloadAccounts:
-  # The "name" will be used to set the AWS Account name
-  # The "name" value does not currently support spaces
-  # The "name" value DOES NOT need to match the account name
-  - name: SharedServices
-    description: The SharedServices account
-    email: <shared-services>@example.com  <----- UPDATE EMAIL ADDRESS
-    organizationalUnit: Infrastructure
-  - name: Network
-    description: The Network account
-    email: <network>@example.com  <----- UPDATE EMAIL ADDRESS
-    organizationalUnit: Infrastructure
-  - name: Perimeter
-    description: The Perimeter account
-    email: <perimeter>@example.com  <----- UPDATE EMAIL ADDRESS
-    organizationalUnit: Infrastructure
+  #############################################################################################################
+  # Delegate Administrator Accounts                                                                           #
+  # Accounts that serve as delegated administrators for specific AWS services.                                #
+  #############################################################################################################
+  - name: IdentityCenter-DelegateAdministrator
+    description: >-
+      Delegated administrator account for AWS IAM Identity Center (formerly AWS SSO).
+      Manages identity federation, permission sets, and account assignments for the
+      organization. Access restricted to identity and access management team.
+    email: <identity-center-delegated-admin-email> # UPDATE: Must match accountIds entry
+    organizationalUnit: Delegate-Administrator
+
+  #############################################################################################################
+  # Finance Accounts                                                                                          #
+  #############################################################################################################
+  - name: FinOps-Workspace
+    description: >-
+      Financial operations workspace account for cost management, cloud financial analysis,
+      budgeting, and chargeback reporting. Used by FinOps team for cost optimization and
+      financial governance across the organization.
+    email: <finops-workspace-email> # UPDATE: Must match accountIds entry
+    organizationalUnit: Finance
+
+  #############################################################################################################
+  # Networking Accounts                                                                                       #
+  # Accounts for network infrastructure. Note: LZA does not deploy networking resources                       #
+  # (network-config.yaml is minimal). These accounts receive SCPs and security monitoring only.               #
+  #############################################################################################################
+  # - name: NetworkHub
+  #   description: >-
+  #     Central networking account for Transit Gateway, VPCs, and network connectivity.
+  #     Networking resources managed externally (Terraform/CloudFormation/Console).
+  #     LZA provides SCP guardrails and security service monitoring only.
+  #   email: <network-hub-account-email>
+  #   organizationalUnit: Networking
+
+  #############################################################################################################
+  # Workload Accounts                                                                                         #
+  # Add production and non-production workload accounts here.                                                 #
+  #############################################################################################################
+  # - name: Workload-Prod-Example
+  #   description: Production workload account for [application name]
+  #   email: <workload-prod-email>
+  #   organizationalUnit: ControlTower-Workloads/High
+  #
+  # - name: Workload-Dev-Example
+  #   description: Development workload account for [application name]
+  #   email: <workload-dev-email>
+  #   organizationalUnit: ControlTower-Workloads/Low
+
+  #############################################################################################################
+  # REMOVED: Default LZA Network Accounts                                                                     #
+  # These accounts were removed because networking is managed externally.                                     #
+  #                                                                                                           #
+  # Original accounts from lza-universal-configuration:                                                       #
+  #   - SharedServices (organizationalUnit: Infrastructure)                                                   #
+  #   - Network (organizationalUnit: Infrastructure)                                                          #
+  #   - Perimeter (organizationalUnit: Infrastructure)                                                        #
+  #############################################################################################################

@@ -1,117 +1,113 @@
 #######################################################################################################################
+# Organization Configuration for Landing Zone Accelerator on AWS                                                      #
 # For additional configurable services, features, and property descriptions,                                          #
 # please review the OrganizationConfig class reference in our TypeDoc:                                                #
 # https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/config/#aws-organizations-configuration #
+#                                                                                                                     #
+# This configuration defines the AWS Organizations structure, SCPs, RCPs, and other org-level policies.               #
+# Many policies have been commented out for this minimal/test deployment.                                             #
 #######################################################################################################################
 
 enable: true
+
+###############################################################################################################
+# Organizational Units                                                                                        #
+# Define the OU structure that matches your existing AWS Organizations hierarchy.                             #
+# Note: These OUs should already exist in your AWS Organization or will be created by LZA.                    #
+###############################################################################################################
 organizationalUnits:
-  - name: Security
-  - name: Infrastructure
-  - name: Suspended
+  - name: Closed-Accounts
+    ignore: true # LZA won't manage accounts in this OU
+  - name: ControlTower-Workloads
+  - name: ControlTower-Workloads/High
+  - name: ControlTower-Workloads/Low
+  - name: Delegate-Administrator
+  - name: Finance
+  - name: Networking
+  - name: Non-ControlTower-Workloads
+  - name: SCP-Staging
     ignore: true
-  - name: Workloads
-  - name: Workloads/Sandbox
-  - name: Workloads/Dev
-  - name: Workloads/Test
-  - name: Workloads/Prod
+  - name: Security
+  - name: Migrated-Accounts
+    ignore: true
+
+###############################################################################################################
+# Quarantine New Accounts                                                                                     #
+# When enabled, newly created accounts are automatically assigned a restrictive SCP until LZA processes them. #
+# This prevents unauthorized actions before guardrails are in place.                                          #
+###############################################################################################################
 quarantineNewAccounts:
   enable: true
   scpPolicyName: "{{ AcceleratorPrefix }}-Quarantine-New-Object"
-declarativePolicies:
-  - name: "{{ AcceleratorPrefix }}-Vpc-Block-Public-Access-Guardrail"
-    description: >
-      Declarative policies for VPC Block Public Access.
-      Attached at account level for granular control as some accounts within OUs require exemptions.
-    policy: declarative-policies/lza-core-vpc-block-public-access.json
-    type: customerManaged
-    deploymentTargets:
-      organizationalUnits:
-        - Security
-        - Workloads/Dev
-        - Workloads/Test
-        - Workloads/Prod
-      accounts:
-        - Network
-        - SharedServices
-resourceControlPolicies:
-  - name: "{{ AcceleratorPrefix }}-Core-Rcp-Guardrails"
-    description: >
-      A comprehensive data perimeter policy that allows external read-only access while protecting AWS resources from unauthorized modifications and enforcing secure communications.
-    policy: rcp-policies/lza-core-rcp-guardrails-1.json
-    deploymentTargets:
-      organizationalUnits:
-        - Infrastructure
-        - Security
-        - Workloads
+
+###############################################################################################################
+# Declarative Policies                                                                                        #
+# Declarative policies enforce organization-wide settings declaratively (e.g., VPC Block Public Access).      #
+#                                                                                                             #
+# DISABLED: VPC Block Public Access - Not compatible with external networking team management                 #
+#                                                                                                             #
+# Original policy:                                                                                            #
+# {                                                                                                           #
+#     "ec2_attributes": {                                                                                     #
+#         "vpc_block_public_access": {                                                                        #
+#             "internet_gateway_block": {                                                                     #
+#                 "mode": { "@@assign": "block_bidirectional" },                                              #
+#                 "exclusions_allowed": { "@@assign": "enabled" }                                             #
+#             }                                                                                               #
+#         }                                                                                                   #
+#     }                                                                                                       #
+# }                                                                                                           #
+#                                                                                                             #
+# To re-enable:                                                                                               #
+#   declarativePolicies:                                                                                      #
+#     - name: "{{ AcceleratorPrefix }}-Vpc-Block-Public-Access-Guardrail"                                     #
+#       description: Declarative policies for VPC Block Public Access.                                        #
+#       policy: declarative-policies/lza-core-vpc-block-public-access.json                                    #
+#       type: customerManaged                                                                                 #
+#       deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - ControlTower-Workloads                                                                          #
+#         accounts:                                                                                           #
+#           - Network                                                                                         #
+###############################################################################################################
+declarativePolicies: []
+
+###############################################################################################################
+# Resource Control Policies (RCPs)                                                                            #
+# RCPs control access to AWS resources across the organization (data perimeter controls).                     #
+#                                                                                                             #
+# DISABLED: Core RCP Guardrails - Requires review for your environment                                        #
+#                                                                                                             #
+# Original policy (lza-core-rcp-guardrails-1.json) included:                                                  #
+#   - GRS3DPB: Denies S3 modifications from outside the organization                                          #
+#   - GRECDP: Denies S3/SQS/KMS/SecretsManager/STS from AWS services outside org                              #
+#   - GRRST: Denies actions without secure transport (HTTPS)                                                  #
+#   - GRKMS: Protects KMS keys tagged with Accelerator                                                        #
+#   - GRS3OBJ: Protects Control Tower logs bucket                                                             #
+#                                                                                                             #
+# To re-enable:                                                                                               #
+#   resourceControlPolicies:                                                                                  #
+#     - name: "{{ AcceleratorPrefix }}-Core-Rcp-Guardrails"                                                   #
+#       description: Data perimeter policy for external access control and secure communications.             #
+#       policy: rcp-policies/lza-core-rcp-guardrails-1.json                                                   #
+#       deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - Networking                                                                                      #
+#           - ControlTower-Workloads                                                                          #
+#           - Finance                                                                                         #
+###############################################################################################################
+resourceControlPolicies: []
+
+###############################################################################################################
+# Service Control Policies (SCPs)                                                                             #
+# SCPs set permission guardrails across the organization.                                                     #
+###############################################################################################################
 serviceControlPolicies:
-  - name: "{{ AcceleratorPrefix }}-Core-Guardrails-1"
-    description: >
-      Restricts unauthorized modifications to CloudTrail, Config, and LZA managed resources.
-    policy: service-control-policies/lza-core-guardrails-1.json
-    type: customerManaged
-    deploymentTargets:
-      organizationalUnits:
-        - Infrastructure
-        - Security
-        - Workloads
-  - name: "{{ AcceleratorPrefix }}-Core-Guardrails-2"
-    description: >
-      Restricts unauthorized modifications to security services (GuardDuty, SecurityHub, Macie), LZA managed resources and prevents the use of the root account.
-    policy: service-control-policies/lza-core-guardrails-2.json
-    type: customerManaged
-    deploymentTargets:
-      organizationalUnits:
-        - Infrastructure
-        - Security
-        - Workloads
-  - name: "{{ AcceleratorPrefix }}-Security-Guardrails-1"
-    description: >
-      Restricts unauthorized modifications to networking resources and configurations, and enforces encryption requirements for storage services.
-      Attached at account level to reserve SCP quota for AWS Control Tower region deny controls
-    policy: service-control-policies/lza-core-security-guardrails-1.json
-    type: customerManaged
-    deploymentTargets:
-      accounts:
-        - Audit
-        - LogArchive
-  - name: "{{ AcceleratorPrefix }}-Infrastructure-Guardrails-1"
-    description: >
-      Restricts unauthorized modifications to networking resources and configurations, and enforces encryption requirements for storage services.
-      Attached at account level to reserve SCP quota for AWS Control Tower region deny controls
-    policy: service-control-policies/lza-infrastructure-guardrails-1.json
-    type: customerManaged
-    deploymentTargets:
-      accounts:
-        - Network
-        - Perimeter
-        - SharedServices
-  - name: "{{ AcceleratorPrefix }}-Core-Workloads-Guardrails-1"
-    description: >
-      Restricts unauthorized modifications to networking resources and configurations, and enforces encryption requirements for storage services.
-    policy: service-control-policies/lza-core-workloads-guardrails-1.json
-    type: customerManaged
-    deploymentTargets:
-      organizationalUnits:
-        - Workloads/Dev
-        - Workloads/Test
-        - Workloads/Prod
-  - name: "{{ AcceleratorPrefix }}-Core-Sandbox-Guardrails-1"
-    description: >
-      Restricts unauthorized modifications to networking resources and configurations, and enforces encryption requirements for storage services.
-    policy: service-control-policies/lza-core-sandbox-guardrails-1.json
-    type: customerManaged
-    deploymentTargets:
-      organizationalUnits:
-        - Workloads/Sandbox
-  - name: "{{ AcceleratorPrefix }}-Suspended-Guardrails"
-    description: >
-      Restricts LZA from accessing resources.
-    policy: service-control-policies/lza-suspended-guardrails.json
-    type: customerManaged
-    deploymentTargets:
-      organizationalUnits:
-        - Suspended
+  #############################################################################################################
+  # ACTIVE POLICIES                                                                                           #
+  #############################################################################################################
+
+  # Quarantine Policy - Required for quarantineNewAccounts feature
   - name: "{{ AcceleratorPrefix }}-Quarantine-New-Object"
     description: >
       This SCP is used to prevent changes to new accounts until the Accelerator has been executed successfully.
@@ -121,53 +117,200 @@ serviceControlPolicies:
     deploymentTargets:
       organizationalUnits: []
 
-taggingPolicies:
-  # AWS Organizations Tagging Policies
-  # - Enables tag policy for values of backup plans only
-  # - This will only enforce the tag value specified matches one of the backup plans
-  #   - Redshift, RDS, Timestream, DocumentDB, Neptune cannot currently be enforced
-  #   - VMWare VMs are outside of scope for tag enforcement
-  - name: OrgTagPolicy
-    description: Organization Tagging Policy
-    policy: tagging-policies/org-tag-policy.json
+  # Suspended/Closed Accounts Guardrails
+  - name: "{{ AcceleratorPrefix }}-Suspended-Guardrails"
+    description: >
+      Restricts LZA from accessing resources in suspended/closed accounts.
+    policy: service-control-policies/lza-suspended-guardrails.json
+    type: customerManaged
     deploymentTargets:
       organizationalUnits:
-        - Infrastructure
-        - Workloads
-  # AWS Backup continuous backup is only supported for S3 & RDS but RDS isn't supported by tag policies.
-  #   - https://docs.aws.amazon.com/aws-backup/latest/devguide/point-in-time-recovery.html
-  - name: S3TagPolicy
-    description: S3 Tagging Policy
-    policy: tagging-policies/s3-tag-policy.json
-    deploymentTargets:
-      organizationalUnits:
-        - Infrastructure
-        - Workloads
+        - Closed-Accounts
 
+  # Core Guardrails 1 - Protects LZA-managed resources
+  - name: "{{ AcceleratorPrefix }}-Core-Guardrails-1"
+    description: >
+      Restricts unauthorized modifications to Config rules, Lambda functions, SNS topics,
+      CloudWatch Log Groups, Kinesis streams, and EventBridge rules managed by LZA.
+    policy: service-control-policies/lza-core-guardrails-1.json
+    type: customerManaged
+    deploymentTargets:
+      organizationalUnits:
+        - Networking
+        - ControlTower-Workloads
+        - Finance
+        - Delegate-Administrator
+        - Non-ControlTower-Workloads
+        - Security
+
+  # Core Guardrails 2 - Protects LZA IAM/CFN/SSM/S3 + Security Services
+  - name: "{{ AcceleratorPrefix }}-Core-Guardrails-2"
+    description: >
+      Restricts unauthorized modifications to LZA IAM roles, CloudFormation stacks, SSM parameters,
+      and S3 buckets. Protects security services (GuardDuty, SecurityHub, Macie, IAM Access Analyzer).
+      Prevents accounts from leaving the organization.
+    policy: service-control-policies/lza-core-guardrails-2.json
+    type: customerManaged
+    deploymentTargets:
+      organizationalUnits:
+        - Networking
+        - ControlTower-Workloads
+        - Finance
+        - Delegate-Administrator
+        - Non-ControlTower-Workloads
+        - Security
+
+  #############################################################################################################
+  # DISABLED POLICIES - Uncomment after review                                                                #
+  #############################################################################################################
+
+  #############################################################################################################
+  # Core-Guardrails-2: Protects LZA IAM roles, CloudFormation stacks, SSM params, S3 buckets                  #
+  #                    ALSO CONTAINS ROOT USER PREVENTION (GRRU) - May conflict with account migration!       #
+  #                                                                                                           #
+  # Statements:                                                                                               #
+  #   - GRIAMR: Protects accelerator IAM roles from modification                                              #
+  #   - GRIAMRT: Protects roles with Accelerator tag                                                          #
+  #   - GRCFM: Protects CloudFormation stacks with accelerator prefix                                         #
+  #   - GRSSM: Protects SSM parameters with accelerator prefix                                                #
+  #   - GRS3: Protects accelerator S3 buckets                                                                 #
+  #   - GRRU: ** DENIES ALL ACTIONS BY ROOT USER ** - Remove this statement if migrating accounts             #
+  #   - GRSEC: Denies modifications to GuardDuty, SecurityHub, Macie, IAM Access Analyzer, RAM                #
+  #                                                                                                           #
+  # To enable (consider removing GRRU statement from policy file first):                                      #
+  #   - name: "{{ AcceleratorPrefix }}-Core-Guardrails-2"                                                     #
+  #     description: Restricts modifications to security services and LZA resources. Prevents root usage.     #
+  #     policy: service-control-policies/lza-core-guardrails-2.json                                           #
+  #     type: customerManaged                                                                                 #
+  #     deploymentTargets:                                                                                    #
+  #       organizationalUnits:                                                                                #
+  #         - Networking                                                                                      #
+  #         - ControlTower-Workloads                                                                          #
+  #         - Finance                                                                                         #
+  #############################################################################################################
+
+  #############################################################################################################
+  # Security-Guardrails-1: For Audit/LogArchive accounts                                                      #
+  # REMOVED: Contains VPC/IGW creation blocks and encryption enforcement                                      #
+  #                                                                                                           #
+  # Statements:                                                                                               #
+  #   - GRNETSEC1: Denies ec2:CreateInternetGateway, ec2:CreateVpc                                            #
+  #   - GREFS: Denies unencrypted EFS creation                                                                #
+  #   - GRRDS1/2: Denies unencrypted RDS creation                                                             #
+  #                                                                                                           #
+  # To enable:                                                                                                #
+  #   - name: "{{ AcceleratorPrefix }}-Security-Guardrails-1"                                                 #
+  #     description: Restricts networking and enforces encryption for security accounts.                      #
+  #     policy: service-control-policies/lza-core-security-guardrails-1.json                                  #
+  #     type: customerManaged                                                                                 #
+  #     deploymentTargets:                                                                                    #
+  #       accounts:                                                                                           #
+  #         - Audit                                                                                           #
+  #         - LogArchive                                                                                      #
+  #############################################################################################################
+
+  #############################################################################################################
+  # Infrastructure-Guardrails-1: For Network/Perimeter/SharedServices accounts                                #
+  # REMOVED: Extensively blocks VPC/networking actions - conflicts with external networking team              #
+  #                                                                                                           #
+  # Statements:                                                                                               #
+  #   - GRNETSEC1: Protects EC2 tags with Accelerator tag                                                     #
+  #   - GRNETSEC2: Denies ALL VPC/networking actions (CreateVpc, CreateSubnet, TGW, NAT, IGW, etc.)           #
+  #   - GRNFW: Protects Network Firewall resources with accelerator prefix                                    #
+  #   - GREFS: Denies unencrypted EFS                                                                         #
+  #   - GRRDS1/2: Denies unencrypted RDS                                                                      #
+  #   - GRRT531/2: Route53 restrictions                                                                       #
+  #                                                                                                           #
+  # To enable:                                                                                                #
+  #   - name: "{{ AcceleratorPrefix }}-Infrastructure-Guardrails-1"                                           #
+  #     description: Restricts networking modifications and enforces encryption for infra accounts.           #
+  #     policy: service-control-policies/lza-infrastructure-guardrails-1.json                                 #
+  #     type: customerManaged                                                                                 #
+  #     deploymentTargets:                                                                                    #
+  #       accounts:                                                                                           #
+  #         - Network                                                                                         #
+  #         - SharedServices                                                                                  #
+  #############################################################################################################
+
+  #############################################################################################################
+  # Core-Workloads-Guardrails-1: For Workloads OUs (Dev/Test/Prod)                                            #
+  # REMOVED: Blocks ALL VPC/networking actions and enforces encryption                                        #
+  #                                                                                                           #
+  # Statements:                                                                                               #
+  #   - GRNETSEC1: Protects EC2 tags with Accelerator tag                                                     #
+  #   - GRNETSEC2: Denies ALL VPC/networking actions (no tag condition - blocks everything!)                  #
+  #   - GREFS: Denies unencrypted EFS                                                                         #
+  #   - GRRDS1/2: Denies unencrypted RDS                                                                      #
+  #                                                                                                           #
+  # To enable:                                                                                                #
+  #   - name: "{{ AcceleratorPrefix }}-Core-Workloads-Guardrails-1"                                           #
+  #     description: Restricts networking and enforces encryption for workload accounts.                      #
+  #     policy: service-control-policies/lza-core-workloads-guardrails-1.json                                 #
+  #     type: customerManaged                                                                                 #
+  #     deploymentTargets:                                                                                    #
+  #       organizationalUnits:                                                                                #
+  #         - ControlTower-Workloads/High                                                                     #
+  #         - ControlTower-Workloads/Low                                                                      #
+  #############################################################################################################
+
+  #############################################################################################################
+  # Core-Sandbox-Guardrails-1: For Sandbox OUs                                                                #
+  # REMOVED: Not applicable (no Sandbox OU) and enforces encryption                                           #
+  #                                                                                                           #
+  # Statements:                                                                                               #
+  #   - GRNETSEC1: Protects EC2 tags with Accelerator tag                                                     #
+  #   - GRNETSEC2: Denies networking actions on Accelerator-tagged resources only                             #
+  #   - GREFS: Denies unencrypted EFS                                                                         #
+  #   - GRRDS1/2: Denies unencrypted RDS                                                                      #
+  #                                                                                                           #
+  # To enable:                                                                                                #
+  #   - name: "{{ AcceleratorPrefix }}-Core-Sandbox-Guardrails-1"                                             #
+  #     description: Restricts networking and enforces encryption for sandbox accounts.                       #
+  #     policy: service-control-policies/lza-core-sandbox-guardrails-1.json                                   #
+  #     type: customerManaged                                                                                 #
+  #     deploymentTargets:                                                                                    #
+  #       organizationalUnits:                                                                                #
+  #         - Sandbox                                                                                         #
+  #############################################################################################################
+
+###############################################################################################################
+# Tagging Policies                                                                                            #
+# DISABLED: Not needed for test environment                                                                   #
+#                                                                                                             #
+# Tagging policies enforce consistent resource tagging across the organization.                               #
+#                                                                                                             #
+# To enable:                                                                                                  #
+#   taggingPolicies:                                                                                          #
+#     - name: OrgTagPolicy                                                                                    #
+#       description: Organization Tagging Policy                                                              #
+#       policy: tagging-policies/org-tag-policy.json                                                          #
+#       deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - Networking                                                                                      #
+#           - ControlTower-Workloads                                                                          #
+###############################################################################################################
+taggingPolicies: []
+
+###############################################################################################################
+# Chatbot Policies                                                                                            #
+# Not configured                                                                                              #
+###############################################################################################################
 chatbotPolicies: []
 
-backupPolicies:
-  # AWS Backup Configuration
-  # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_backup.html
-  # Syntax: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_backup_syntax.html?icmpid=docs_orgs_console
-  # - Retention is set for 1 year
-  #   - Continuous is set to max of 35 days
-  #   - Monthly is set for two years
-  # - VSS Enabled (Windows) for all plans
-  #   - https://docs.aws.amazon.com/aws-backup/latest/devguide/windows-backups.html
-  # - Available Backup Plans
-  #   - Continuous
-  #   - Hourly
-  #   - Daily
-  #   - Weekly
-  #   - Monthly
-  # - Backup Window
-  #   - Set to AWS Backup default of 5am UTC
-  # - Tag policy with list of backup plans has been created for you, if changes in policies are made you should also update this tag policy too
-  - name: "{{ AcceleratorPrefix }}-BackupPolicy"
-    description: Organization Backup Policy
-    policy: backup-policies/primary-backup-plan.json
-    deploymentTargets:
-      organizationalUnits:
-        - Infrastructure
-        - Workloads
+###############################################################################################################
+# Backup Policies                                                                                             #
+# DISABLED: Backups disabled for test environment                                                             #
+#                                                                                                             #
+# Backup policies define organization-wide AWS Backup plans.                                                  #
+#                                                                                                             #
+# To enable:                                                                                                  #
+#   backupPolicies:                                                                                           #
+#     - name: "{{ AcceleratorPrefix }}-BackupPolicy"                                                          #
+#       description: Organization Backup Policy                                                               #
+#       policy: backup-policies/primary-backup-plan.json                                                      #
+#       deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - Networking                                                                                      #
+#           - ControlTower-Workloads                                                                          #
+###############################################################################################################
+backupPolicies: []

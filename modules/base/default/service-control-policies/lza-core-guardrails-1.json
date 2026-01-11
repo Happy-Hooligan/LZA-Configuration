@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "GRCFGR",
+      "Sid": "LZAProtectConfigRules",
       "Effect": "Deny",
       "Action": [
         "config:PutConfigRule",
@@ -25,7 +25,7 @@
       }
     },
     {
-      "Sid": "GRLMB",
+      "Sid": "LZAProtectLambdaFunctions",
       "Effect": "Deny",
       "Action": [
         "lambda:Add*",
@@ -49,7 +49,7 @@
       }
     },
     {
-      "Sid": "GRSNS",
+      "Sid": "LZAProtectSNSTopics",
       "Effect": "Deny",
       "Action": [
         "sns:AddPermission",
@@ -72,7 +72,7 @@
       }
     },
     {
-      "Sid": "GRCWLG",
+      "Sid": "LZAProtectCloudWatchLogGroups",
       "Effect": "Deny",
       "Action": [
         "logs:AssociateKmsKey",
@@ -99,7 +99,7 @@
       }
     },
     {
-      "Sid": "GRKIN",
+      "Sid": "LZAProtectKinesisFirehose",
       "Effect": "Deny",
       "Action": [
         "kinesis:Create*",
@@ -130,7 +130,7 @@
       }
     },
     {
-      "Sid": "GREB",
+      "Sid": "LZAProtectEventBridgeRules",
       "Effect": "Deny",
       "Action": [
         "events:PutRule",
@@ -139,9 +139,7 @@
         "events:DisableRule",
         "events:DeleteRule"
       ],
-      "Resource": [
-        "arn:${PARTITION}:events:*:*:rule/${ACCELERATOR_PREFIX}*"
-      ],
+      "Resource": ["arn:${PARTITION}:events:*:*:rule/${ACCELERATOR_PREFIX}*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [

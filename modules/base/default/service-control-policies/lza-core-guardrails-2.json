@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "GRIAMR",
+      "Sid": "LZAProtectIAMRoles",
       "Effect": "Deny",
       "NotAction": [
         "iam:GetRole",
@@ -28,7 +28,7 @@
       }
     },
     {
-      "Sid": "GRIAMRT",
+      "Sid": "LZAProtectTaggedIAMRoles",
       "Effect": "Deny",
       "Action": [
         "iam:AttachRolePolicy",
@@ -56,11 +56,9 @@
       }
     },
     {
-      "Sid": "GRCFM",
+      "Sid": "LZAProtectCloudFormationStacks",
       "Effect": "Deny",
-      "Action": [
-        "cloudformation:Delete*"
-      ],
+      "Action": ["cloudformation:Delete*"],
       "Resource": "arn:${PARTITION}:cloudformation:*:*:stack/${ACCELERATOR_PREFIX}*",
       "Condition": {
         "ArnNotLike": {
@@ -73,12 +71,9 @@
       }
     },
     {
-      "Sid": "GRSSM",
+      "Sid": "LZAProtectSSMParameters",
       "Effect": "Deny",
-      "Action": [
-        "ssm:DeleteParameter*",
-        "ssm:PutParameter"
-      ],
+      "Action": ["ssm:DeleteParameter*", "ssm:PutParameter"],
       "Resource": "arn:${PARTITION}:ssm:*:*:parameter${ACCELERATOR_SSM_PREFIX}*",
       "Condition": {
         "ArnNotLike": {
@@ -91,7 +86,7 @@
       }
     },
     {
-      "Sid": "GRS3",
+      "Sid": "LZAProtectS3Buckets",
       "Effect": "Deny",
       "Action": [
         "s3:Delete*",
@@ -120,31 +115,19 @@
       }
     },
     {
-      "Sid": "GRRU",
+      "Sid": "DenyLeavingOrganization",
       "Effect": "Deny",
-      "Action": "*",
-      "Resource": "*",
-      "Condition": {
-        "ArnLike": {
-          "aws:PrincipalArn": [
-            "arn:${PARTITION}:iam::*:root"
-          ]
-        },
-        "Null": {
-          "aws:AssumedRoot": "true"
-        }
-      }
+      "Action": ["organizations:LeaveOrganization"],
+      "Resource": "*"
     },
     {
-      "Sid": "GRSEC",
+      "Sid": "ProtectSecurityServices",
       "Effect": "Deny",
       "Action": [
         "access-analyzer:DeleteAnalyzer",
         "account:DisableRegion",
         "account:EnableRegion",
         "ec2:CreateDefaultVpc",
-        "ec2:DisableEbsEncryptionByDefault",
-        "ec2:ModifyEbsDefaultKmsKeyId",
         "guardduty:AcceptInvitation",
         "guardduty:CreateMembers",
         "guardduty:DeclineInvitations",
@@ -157,8 +140,6 @@
         "guardduty:UpdateFindingsFeedback",
         "guardduty:UpdateOrganizationConfiguration",
         "guardduty:UpdatePublishingDestination",
-        "iam:CreateAccountAlias",
-        "iam:CreateUser",
         "iam:DeleteAccount*",
         "iam:UpdateAccountPasswordPolicy",
         "macie2:AcceptInvitation",
@@ -174,14 +155,6 @@
         "macie2:UpdateMacieSession",
         "macie2:UpdateMemberSession",
         "macie2:UpdateOrganizationConfiguration",
-        "organizations:LeaveOrganization*",
-        "ram:AssociateResourceShare",
-        "ram:CreateResourceShare",
-        "ram:Delete*",
-        "ram:Disassociate*",
-        "ram:UntagResource",
-        "ram:UpdateResourceShare",
-        "s3:PutAccountPublicAccessBlock",
         "securityhub:AcceptInvitation",
         "securityhub:BatchDisableStandards",
         "securityhub:CreateMembers",
