@@ -1,57 +1,100 @@
 ########################################################################################################################################
+# IAM Configuration for Landing Zone Accelerator on AWS                                                                                #
 # For additional configurable services, features, and property descriptions,                                                           #
-# please review class GlobalConfig reference in our TypeDoc:                                                                           #
+# please review class IamConfig reference in our TypeDoc:                                                                              #
 # https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/user-guide/config/#identity-and-access-management-iam-configuration #
+#                                                                                                                                      #
+# This is a minimal IAM configuration for test environment.                                                                            #
+# - Identity Center managed via console (not LZA)                                                                                      #
+# - No IAM policies, roles, groups, or users deployed by LZA                                                                           #
+# - EntraID SSO configured directly in Identity Center console                                                                         #
 ########################################################################################################################################
 
-identityCenter:
-  name: "{{ AcceleratorPrefix }}-IdentityCenter"
-  delegatedAdminAccount: SharedServices
+###############################################################################################################
+# Identity Center Configuration                                                                               #
+# DISABLED: Identity Center managed via console, not LZA                                                      #
+#                                                                                                             #
+# Rationale:                                                                                                  #
+#   - EntraID SAML/SCIM federation configured in console                                                      #
+#   - Permission sets easier to manage in console                                                             #
+#   - Changes don't require running full LZA pipeline                                                         #
+#                                                                                                             #
+# To enable LZA management of Identity Center:                                                                #
+#   identityCenter:                                                                                           #
+#     name: "{{ AcceleratorPrefix }}-IdentityCenter"                                                          #
+#     delegatedAdminAccount: IdentityCenter-DelegateAdministrator                                             #
+###############################################################################################################
+# identityCenter:
+#   name: "{{ AcceleratorPrefix }}-IdentityCenter"
+#   delegatedAdminAccount: IdentityCenter-DelegateAdministrator
 
+###############################################################################################################
+# Identity Providers                                                                                          #
+# SAML/OIDC providers for direct IAM federation (not Identity Center).                                        #
+# Not needed for EntraID SSO via Identity Center.                                                             #
+###############################################################################################################
 providers: []
-policySets:
-  - deploymentTargets:
-      organizationalUnits:
-        - Root
-      excludedAccounts:
-        - Management
-    policies:
-      - name: "{{ AcceleratorPrefix }}-End-User-Policy"
-        policy: iam-policies/sample-end-user-policy.json
-      # This policy allows instances to retrieve critical data related to proper instance management.
-      #   - https://docs.aws.amazon.com/systems-manager/latest/userguide/ssm-agent-technical-details.html
-      #   - https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-instance-permissions.html
-      - name: "{{ AcceleratorPrefix }}-Default-SSM-S3-Policy"
-        policy: iam-policies/ssm-s3-policy.json
 
-roleSets:
-  - deploymentTargets:
-      organizationalUnits:
-        - Root
-      excludedAccounts:
-        - Management
-    roles:
-      # This role is utilized by the Backup Plans defined in organization-config.yaml
-      # We create this role in every account where we plan to have Backup Plans and Backup Vaults
-      - name: "{{ AcceleratorPrefix }}-Backup-Role"
-        assumedBy:
-          - type: service
-            principal: backup.amazonaws.com
-        policies:
-          awsManaged:
-            - service-role/AWSBackupServiceRolePolicyForBackup
-            - service-role/AWSBackupServiceRolePolicyForRestores
-      - name: EC2-Default-SSM-Role
-        instanceProfile: true
-        assumedBy:
-          - type: service
-            principal: ec2.amazonaws.com
-        policies:
-          awsManaged:
-            - AmazonSSMManagedInstanceCore
-            - CloudWatchAgentServerPolicy
-          customerManaged:
-            - "{{ AcceleratorPrefix }}-Default-SSM-S3-Policy"
-        boundaryPolicy: "{{ AcceleratorPrefix }}-End-User-Policy"
+###############################################################################################################
+# Policy Sets                                                                                                 #
+# IAM managed policies deployed to accounts.                                                                  #
+#                                                                                                             #
+# DISABLED: All policies removed for minimal configuration                                                    #
+#                                                                                                             #
+# Original policies:                                                                                          #
+#   - End-User-Policy: Permissions boundary with VPC restrictions (blocks networking)                         #
+#   - SSM-S3-Policy: S3 access for SSM agent (only needed if deploying SSM role)                              #
+###############################################################################################################
+policySets: []
+
+###############################################################################################################
+# Role Sets                                                                                                   #
+# IAM roles deployed to accounts.                                                                             #
+#                                                                                                             #
+# DISABLED: All roles removed for minimal configuration                                                       #
+#                                                                                                             #
+# Removed roles:                                                                                              #
+#   - Backup-Role: AWS Backup disabled in global-config.yaml                                                  #
+#   - EC2-Default-SSM-Role: SSM not currently in use                                                          #
+#                                                                                                             #
+# To add EC2 SSM role later (enables Session Manager, Patch Manager, Run Command):                            #
+#                                                                                                             #
+#   First, add the SSM S3 policy to policySets:                                                               #
+#     policySets:                                                                                             #
+#       - deploymentTargets:                                                                                  #
+#           organizationalUnits:                                                                              #
+#             - Root                                                                                          #
+#           excludedAccounts:                                                                                 #
+#             - Management                                                                                    #
+#         policies:                                                                                           #
+#           - name: "{{ AcceleratorPrefix }}-Default-SSM-S3-Policy"                                           #
+#             policy: iam-policies/ssm-s3-policy.json                                                         #
+#                                                                                                             #
+#   Then, add the role to roleSets:                                                                           #
+#     roleSets:                                                                                               #
+#       - deploymentTargets:                                                                                  #
+#           organizationalUnits:                                                                              #
+#             - Root                                                                                          #
+#           excludedAccounts:                                                                                 #
+#             - Management                                                                                    #
+#         roles:                                                                                              #
+#           - name: EC2-Default-SSM-Role                                                                      #
+#             instanceProfile: true                                                                           #
+#             assumedBy:                                                                                      #
+#               - type: service                                                                               #
+#                 principal: ec2.amazonaws.com                                                                #
+#             policies:                                                                                       #
+#               awsManaged:                                                                                   #
+#                 - AmazonSSMManagedInstanceCore                                                              #
+#                 - CloudWatchAgentServerPolicy                                                               #
+#               customerManaged:                                                                              #
+#                 - "{{ AcceleratorPrefix }}-Default-SSM-S3-Policy"                                           #
+###############################################################################################################
+roleSets: []
+
+###############################################################################################################
+# Group Sets and User Sets                                                                                    #
+# IAM groups and users - use Identity Center instead of IAM users                                             #
+###############################################################################################################
 groupSets: []
 userSets: []
