@@ -1,98 +1,197 @@
-# Landing Zone Accelerator on AWS (LZA) Universal Configuration
+# For original AWS-Repository, go to https://github.com/aws/lza-universal-configuration
 
-The LZA Universal Configuration provides enterprise-ready configuration templates that utilize the [Landing Zone Accelerator on AWS](https://aws.amazon.com/solutions/implementations/landing-zone-accelerator-on-aws/) (LZA) to establish secure, scalable, and well-architected multi-account AWS environments. It enables rapid deployment of baseline environments supporting multiple global compliance frameworks and industry-specific requirements.
+This Repository is an updated version with changes made in the README.
 
-## Getting Started
+# LZA Minimal Configuration
 
-**To get started with this project, please refer to the comprehensive documentation in the [`docs/`](./docs) directory.** The documentation is organized in a logical sequence to guide you through understanding, deploying, and operating your LZA environment:
+This repository contains a stripped-down AWS Landing Zone Accelerator (LZA) configuration optimized for:
 
-1. **[Overview](./docs/01-Overview)** - Architecture overview and design principles
-2. **[Getting Started](./docs/02-Getting-Started)** - Deployment prerequisites and initial setup procedures
-3. **[Management & Governance](./docs/03-Management-Governance)** - Organization structure and account management
-4. **[Security, Identity & Compliance](./docs/04-Security-Identity-Compliance)** - Security controls and compliance frameworks
-5. **[Networking](./docs/05-Networking)** - Network architecture patterns and connectivity
-6. **[Logging & Monitoring](./docs/06-Logging-Monitoring)** - Centralized logging and monitoring setup
-7. **[Operations](./docs/07-Operations)** - Day-to-day operational procedures and management tasks
+- **No LZA-managed networking** — Networking managed externally via Terraform/CloudFormation/Console
+- **Cost optimization** — Reduced log retention, minimal KMS CMK usage
+- **Account migration compatibility** — Supports migrating accounts from other AWS Organizations
 
-We recommend reviewing the documentation in order, starting with the Overview and Getting Started sections.
+This configuration is based on the [AWS LZA Universal Configuration](https://github.com/aws/lza-universal-configuration) with significant modifications for a minimal test environment.
 
-## Specific Regional and Industry Guidelines
+## Prerequisites
 
-For detailed information about supported regions and industry-specific configurations, including compliance frameworks, regulatory requirements, and implementation guidance, please refer to:
+- AWS Control Tower 4.0 deployed with pre-created accounts
+- Existing AWS Organizations structure with required OUs
+- IAM Identity Center configured
 
-**[Support for Regions and Industries](https://docs.aws.amazon.com/solutions/latest/landing-zone-accelerator-on-aws/support-for-regions-and-industries.html)**
+## Configuration Overview
 
-This comprehensive guide covers:
+### Organization Structure
 
-- Regional compliance requirements
-- Industry-specific security controls and frameworks
-- Regulatory compliance mappings
+| OU | LZA Managed | Purpose |
+|----|-------------|---------|
+| Root | Yes | Management account only |
+| Security | Yes | LogArchive (CloudTrail) and Audit (Config) accounts |
+| Delegate-Administrator | Yes | Service delegation accounts (Identity Center) |
+| Finance | Yes | FinOps and cost management accounts |
+| Networking | Yes | Network accounts (resources managed externally) |
+| ControlTower-Workloads | Yes | Production workloads |
+| ControlTower-Workloads/High | Yes | High-priority workloads |
+| ControlTower-Workloads/Low | Yes | Lower-priority workloads |
+| Non-ControlTower-Workloads | Yes | Workloads outside CT governance |
+| Closed-Accounts | No (ignore: true) | Accounts being decommissioned |
+| SCP-Staging | No (ignore: true) | SCP testing area |
+| Migrated-Accounts | No (ignore: true) | Accounts migrated from other orgs |
 
-## What's Included
+### Account Mapping
 
-The LZA Universal Configuration provides ready-to-deploy configuration files and implementation guidance for LZA Universal Configuration baseline:
+| LZA Logical Name | AWS Account Name | OU | Purpose |
+|------------------|------------------|-----|---------|
+| Management | (your mgmt account) | Root | Org management, Control Tower, LZA pipeline |
+| LogArchive | CloudTrail | Security | CT Log Archive, centralized logs |
+| Audit | Config | Security | CT Audit, security delegate admin |
+| IdentityCenter-DelegateAdministrator | (your IC account) | Delegate-Administrator | IAM Identity Center delegation |
+| FinOps-Workspace | FinOps-Workspace | Finance | Cost management, FinOps |
 
-### Configuration Modules
+### Delegate Administrator Configuration
 
-Pre-configured LZA Universal Configuration files organized by the following deployment patterns:
+| Service | Config File | Property |
+|---------|-------------|----------|
+| SecurityHub | security-config.yaml | `centralSecurityServices.delegatedAdminAccount` |
+| GuardDuty | security-config.yaml | `centralSecurityServices.delegatedAdminAccount` |
+| Macie | security-config.yaml | `centralSecurityServices.delegatedAdminAccount` |
+| IAM Access Analyzer | security-config.yaml | `centralSecurityServices.delegatedAdminAccount` |
+| Detective | security-config.yaml | `centralSecurityServices.delegatedAdminAccount` |
+| IAM Identity Center | iam-config.yaml | `identityCenter.delegatedAdminAccount` |
+| AWS Config | security-config.yaml | `awsConfig.aggregation.delegatedAdminAccount` |
+| CloudFormation StackSets | **Not in LZA** | Manual via Organizations console or API |
+| Service Catalog | **Not in LZA** | Manual |
+| Systems Manager | **Not in LZA** | Manual |
 
-- **[Base configurations](./modules/base/default)** - Security, Governance, and Organization settings
-- **[Network configurations](./modules/network)** - Hub-and-spoke, and Shared VPC networking patterns
+## Changes from AWS LZA Universal Configuration
 
-### Documentation
+### network-config.yaml
+- Removed all networking resources (VPCs, Transit Gateways, IPAM, endpoints)
+- Kept only: `defaultVpc.delete: true`
+- **Rationale:** Networking team manages infrastructure independently via Terraform/CloudFormation
 
-Architecture guides, deployment procedures, and detailed design principles that explain the implementation rationale and configuration decisions, supported by architectural diagrams and technical documentation for secure multi-account AWS environments.
+### replacements-config.yaml
+- Removed networking variables (TransitGatewayASN, IPAM pools, VPC CIDRs, subnet masks)
+- Removed email placeholders for disabled features
+- Kept only: `AcceleratorPrefix`, `HomeRegion`, `EnabledRegions`
 
-### Cost
+### global-config.yaml
 
-You are responsible for the cost of the AWS services used while running this solution. As of this revision, the cost for running the Universal Configuration in its current form through the Landing Zone Accelerator on AWS with AWS Control Tower in the US East (N. Virginia) Region within a non-critical sandbox environment with no activity or workloads is approximately **$101.06 (USD)** each month.
+#### Disabled Features
+- SNS topics (security alerts)
+- AWS Backup vaults
+- Cost and Usage Reports (CUR)
+- AWS Budgets
+- Central Root User Management (conflicts with account migration)
+- EventBridge default event bus policies
+- CloudWatch log streaming and dynamic partitioning
+- Session Manager logging
+- ELB log bucket
+- Control Tower controls (using CT defaults only)
 
-We recommend creating a budget through AWS Cost Explorer to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this solution.
+#### Cost Optimizations
+- CloudWatch log retention: 365 → 30 days
+- Control Tower bucket retention: 365 → 30 days
+- S3 lifecycle expiration: 1000 → 90 days
+- Removed Glacier transitions
+- `terminationProtection: false` for easier cleanup
 
-## Sample Cost Table
+#### Encryption Changes
+- S3: `createCMK: false` (uses SSE-S3 instead of customer-managed KMS)
+- Lambda: `useCMK: false` (uses AWS-managed keys)
+- **Note:** Some buckets always use CMK: Installer, CodePipeline, CentralLogs, Management account assets
 
-The following table provides a sample cost breakdown for deploying this solution with the default parameters in the US East (N. Virginia) Region, with no activity, for one month.
+### organization-config.yaml
 
-| AWS Service | Monthly Cost [USD] |
-|-------------|-------------------|
-| Amazon Network Firewall | $585.40 |
-| AWS CloudTrail | $29.46 |
-| AWS Config | $55.95 |
-| AWS KMS | $367.10 |
-| Amazon Kinesis | $61.85 |
-| Amazon Data Firehose | $2.99 |
-| Amazon S3 | $4.86 |
-| Amazon VPC | $458.53 |
-| Amazon CloudWatch | $22.21 |
-| AWS Security Hub | $221.92 |
-| Amazon GuardDuty | $10.84 |
-| Amazon Route 53 | $5.00 |
-| Amazon Macie | $7.16 |
-| AWS Secrets Manager | $0.44 |
-| AWS CodePipeline | $1.00 |
-| AWS CodeBuild | $1.52 |
-| **Total** | | **$1,842.08** |
+#### Disabled Policies
+- **Declarative policies** — VPC Block Public Access conflicts with external networking management
+- **Resource Control Policies (RCPs)** — Requires review for environment
+- **Tagging policies** — Not needed for test environment
+- **Backup policies** — Backups disabled
 
-> **Note:** The VPC calculation is done if you're utilizing a hub-and-spoke topology. Data transfer, AWS CodeArtifact, Amazon Detective, Amazon DynamoDB, AWS Lambda, AWS Service Catalog, Amazon Simple Notification Service (Amazon SNS), Amazon Simple Queue Service (Amazon SQS), AWS Step Functions, and AWS Systems Manager are priced at the Free Tier or less than $0.01 each month.
+#### Active SCPs
+| SCP | Purpose | Applied To |
+|-----|---------|------------|
+| lza-quarantine.json | Locks new accounts until LZA processes them | New accounts (dynamic) |
+| lza-suspended-guardrails.json | Blocks LZA from closed accounts | Closed-Accounts OU |
+| lza-core-guardrails-1.json | Protects LZA Config, Lambda, SNS, CloudWatch, Kinesis, EventBridge resources | All managed OUs |
+| lza-core-guardrails-2.json | Protects LZA IAM, CloudFormation, SSM, S3 + security services | All managed OUs |
 
+#### Removed SCPs
+| SCP | Reason |
+|-----|--------|
+| lza-core-security-guardrails-1.json | Blocks VPC/IGW creation, enforces encryption |
+| lza-infrastructure-guardrails-1.json | Extensively blocks networking actions |
+| lza-core-workloads-guardrails-1.json | Blocks all VPC/networking actions |
+| lza-core-sandbox-guardrails-1.json | No Sandbox OU in this configuration |
 
+### accounts-config.yaml
+- Added `accountIds` section for existing account mapping
+- Mapped Control Tower 4.0 accounts (LogArchive → CloudTrail, Audit → Config)
+- Added workload accounts: `IdentityCenter-DelegateAdministrator`, `FinOps-Workspace`
+- Removed default network accounts: SharedServices, Network, Perimeter
 
-### Scripts and CI/CD Integration
+### Service Control Policy Changes
 
-Automation utilities for configuration management and environment setup, including account configuration generation and deployment helpers. The `.gitlab-ci.yml` file demonstrates how to integrate these configurations with CI/CD options for automated multi-environment deployments.
+#### lza-core-guardrails-1.json
+Renamed SIDs for readability:
+| Original | New |
+|----------|-----|
+| GRCFGR | LZAProtectConfigRules |
+| GRLMB | LZAProtectLambdaFunctions |
+| GRSNS | LZAProtectSNSTopics |
+| GRCWLG | LZAProtectCloudWatchLogGroups |
+| GRKIN | LZAProtectKinesisFirehose |
+| GREB | LZAProtectEventBridgeRules |
 
----
+#### lza-core-guardrails-2.json
+Renamed SIDs for readability:
+| Original | New |
+|----------|-----|
+| GRIAMR | LZAProtectIAMRoles |
+| GRIAMRT | LZAProtectTaggedIAMRoles |
+| GRCFM | LZAProtectCloudFormationStacks |
+| GRSSM | LZAProtectSSMParameters |
+| GRS3 | LZAProtectS3Buckets |
 
-IMPORTANT
+**Removed statements:**
+- `GRRU` (DenyRootUserActions) — Conflicts with account migration
 
-LZA Universal Configuration will not, by themselves, make you compliant. They offer an opinionated, best-practice approach to establishing a well-architected AWS multi-account environment from which additional complementary solutions can be integrated. The information is not exhaustive - you must review, evaluate, and approve the solution according to your organization's security requirements. You are responsible for determining applicable regulatory requirements and ensuring compliance. While this solution addresses technical and administrative requirements, it does not help with non-technical administrative compliance requirements.
+**Modified ProtectSecurityServices:**
+- Split into `DenyLeavingOrganization` (unconditional) and `ProtectSecurityServices`
+- Removed: EBS encryption controls, `iam:CreateUser`, `iam:CreateAccountAlias`, `s3:PutAccountPublicAccessBlock`, all `ram:*` actions
 
----
+### Deleted Files
+- `event-bus-policies/` — No longer referenced
+- `dynamic-partitioning/` — Log streaming disabled
+- `rcp-policies/` — RCPs disabled
+- `declarative-policies/` — Declarative policies disabled
+- `tagging-policies/` — Not needed
+- `backup-policies/` — Backups disabled
 
-## Security
+## Pre-Deployment Checklist
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+- [ ] Update `HomeRegion` and `EnabledRegions` in replacements-config.yaml
+- [ ] Update email addresses in accounts-config.yaml
+- [ ] Update account IDs in accounts-config.yaml `accountIds` section
+- [ ] Verify Control Tower version matches `landingZone.version: "4.0"` in global-config.yaml
+- [ ] Confirm OU names match your AWS Organizations structure
+- [ ] Review security-config.yaml delegate admin settings
+- [ ] Review iam-config.yaml Identity Center delegate admin
 
-## License
+## Cost Considerations
 
-This project is licensed under the Apache-2.0 License.
+This configuration minimizes costs by:
+- Using SSE-S3 instead of KMS CMKs (~$1/key/month savings)
+- Reducing log retention (30-90 days vs 365-1000 days)
+- Disabling Kinesis/Firehose streaming
+- Removing additional Control Tower controls (Config rules have per-evaluation costs)
+- Disabling AWS Backup vaults
+
+Estimated monthly cost: **$100-500** (varies by region and activity)
+
+## References
+
+- [AWS LZA Documentation](https://awslabs.github.io/landing-zone-accelerator-on-aws/)
+- [LZA TypeDoc Reference](https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/)
+- [Original LZA Universal Configuration](https://github.com/aws/lza-universal-configuration)
+- [Control Tower Controls Reference](https://docs.aws.amazon.com/controltower/latest/controlreference/all-global-identifiers.html)
