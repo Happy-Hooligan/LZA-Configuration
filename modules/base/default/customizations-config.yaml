@@ -1,0 +1,92 @@
+###############################################################################################################
+# Customizations Configuration for Landing Zone Accelerator on AWS                                            #
+# For additional configurable services, features, and property descriptions,                                  #
+# please review the CustomizationsConfig class reference in our TypeDoc:                                      #
+# https://awslabs.github.io/landing-zone-accelerator-on-aws/latest/typedocs/                                  #
+#                                                                                                             #
+# This file enables deployment of custom CloudFormation stacks and StackSets across the organization.         #
+# Currently configured with empty placeholders - add customizations as needed.                                #
+###############################################################################################################
+
+###############################################################################################################
+# CloudFormation Stacks                                                                                       #
+# Deploy standalone CloudFormation stacks to specific accounts or OUs.                                        #
+# Use for account-specific customizations that don't need org-wide deployment.                                #
+#                                                                                                             #
+# Example - Deploy a custom IAM role to the Audit account:                                                    #
+#   cloudFormationStacks:                                                                                     #
+#     - deploymentTargets:                                                                                    #
+#         accounts:                                                                                           #
+#           - Audit                                                                                           #
+#       name: Custom-Security-Role                                                                            #
+#       description: Custom IAM role for security team                                                        #
+#       template: cloudformation-stacks/custom-security-role.yaml                                             #
+#       runOrder: 1                                                                                           #
+#       terminationProtection: false                                                                          #
+#       parameters:                                                                                           #
+#         - name: RoleName                                                                                    #
+#           value: CustomSecurityRole                                                                         #
+#                                                                                                             #
+# Example - Deploy to specific OUs:                                                                           #
+#   cloudFormationStacks:                                                                                     #
+#     - deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - Finance                                                                                         #
+#       name: Finance-Specific-Resources                                                                      #
+#       template: cloudformation-stacks/finance-resources.yaml                                                #
+#       runOrder: 1                                                                                           #
+###############################################################################################################
+cloudFormationStacks: []
+
+###############################################################################################################
+# CloudFormation StackSets                                                                                    #
+# Deploy CloudFormation StackSets across the organization from the management account.                        #
+# Use for resources that should be deployed consistently across multiple accounts.                            #
+#                                                                                                             #
+# Common use cases:                                                                                           #
+#   - Standard IAM roles for cross-account access                                                             #
+#   - Custom Config rules beyond LZA/SecurityHub                                                              #
+#   - Security agent deployments (CrowdStrike, Splunk, etc.)                                                  #
+#   - Standard S3 bucket configurations                                                                       #
+#   - Custom Lambda functions for automation                                                                  #
+#   - Tagging enforcement resources                                                                           #
+#                                                                                                             #
+# Example - Deploy standard IAM role to all accounts:                                                         #
+#   cloudFormationStackSets:                                                                                  #
+#     - deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - Root                                                                                            #
+#         excludedAccounts:                                                                                   #
+#           - Management                                                                                      #
+#       name: Standard-CrossAccount-Role                                                                      #
+#       description: Standard IAM role for cross-account access                                               #
+#       template: cloudformation-stacksets/cross-account-role.yaml                                            #
+#       runOrder: 1                                                                                           #
+#       capabilities: [CAPABILITY_IAM, CAPABILITY_NAMED_IAM]                                                  #
+#       parameters:                                                                                           #
+#         - name: TrustedAccountId                                                                            #
+#           value: "123456789012"                                                                             #
+#                                                                                                             #
+# Example - Deploy to specific OUs with exclusions:                                                           #
+#   cloudFormationStackSets:                                                                                  #
+#     - deploymentTargets:                                                                                    #
+#         organizationalUnits:                                                                                #
+#           - ControlTower-Workloads                                                                          #
+#         excludedAccounts:                                                                                   #
+#           - Management                                                                                      #
+#           - LogArchive                                                                                      #
+#           - Audit                                                                                           #
+#       name: Workload-Baseline                                                                               #
+#       template: cloudformation-stacksets/workload-baseline.yaml                                             #
+#       runOrder: 1                                                                                           #
+###############################################################################################################
+cloudFormationStackSets: []
+
+###############################################################################################################
+# Template Storage                                                                                            #
+# When you add CloudFormation templates, create these directories:                                            #
+#   - cloudformation-stacks/      (for Stack templates)                                                       #
+#   - cloudformation-stacksets/   (for StackSet templates)                                                    #
+#                                                                                                             #
+# Templates can reference LZA replacement variables using {{ VariableName }} syntax.                          #
+###############################################################################################################

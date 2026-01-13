@@ -189,6 +189,87 @@ This configuration minimizes costs by:
 
 Estimated monthly cost: **$100-500** (varies by region and activity)
 
+### iam-config.yaml
+- Commented out Identity Center block (managed via console, not LZA)
+  - EntraID SAML/SCIM federation configured directly in Identity Center console
+  - Permission sets easier to manage without running LZA pipeline
+- Removed all policySets:
+  - End-User-Policy had VPC restrictions that block networking team
+  - Permissions boundaries administratively cumbersome (using SCPs instead)
+- Removed all roleSets:
+  - Backup-Role: AWS Backup disabled
+  - EC2-Default-SSM-Role: SSM not currently in use
+- Added comprehensive comments for re-enabling SSM role later
+
+### security-config.yaml
+- Delegate admin: Audit account (your CT Config account)
+- Disabled ebsDefaultVolumeEncryption (not enforcing encryption, uses KMS)
+- Disabled s3PublicAccessBlock (developers need public bucket capability)
+- Enabled scpRevertChangesConfig (auto-reverts manual SCP changes)
+- Disabled Macie (can enable later for sensitive data discovery)
+- GuardDuty configuration:
+  - s3Protection: enabled (monitors S3 for data exfiltration)
+  - eksProtection: enabled (monitors EKS Kubernetes audit logs)
+  - exportConfiguration: enabled (exports findings to S3)
+- SecurityHub: NIST 800-53 R5 only (removed FSBP and CIS v3.0.0)
+- AWS Config:
+  - Aggregation enabled with Audit as delegated admin (centralized compliance view)
+  - Minimal rule set (7 rules) - rely on SecurityHub NIST controls
+- Removed SSM automation documents (referenced deleted resources)
+
+#### Config Rules Kept
+| Rule | Purpose |
+|------|---------|
+| iam-user-group-membership-check | Ensures IAM users belong to groups |
+| s3-bucket-policy-grantee-check | Validates S3 bucket policy principals |
+| ec2-volume-inuse-check | Identifies unattached EBS volumes (cost optimization) |
+| guardduty-non-archived-findings | Alerts on unaddressed GuardDuty findings |
+| lambda-dlq-check | Ensures Lambda functions have DLQs |
+| api-gw-cache-enabled-and-encrypted | Validates API Gateway cache encryption |
+| emr-kerberos-enabled | Ensures EMR uses Kerberos authentication |
+
+#### Config Rules Removed
+| Rule | Reason |
+|------|--------|
+| All backup-* rules | AWS Backup disabled |
+| secretsmanager-using-cmk | Not enforcing CMK |
+| cloudtrail-enabled | Control Tower manages |
+| ec2-instance-profile-attached | Remediation referenced removed SSM role |
+| elb-logging-enabled | Remediation referenced removed ELB bucket |
+
+### Deleted Files (iam-config)
+- `iam-policies/sample-end-user-policy.json` — Permissions boundary not used
+- `iam-policies/ssm-s3-policy.json` — SSM role not deployed
+- `iam-policies/` folder — Empty after above deletions
+
+### Deleted Files (security-config)
+- `ssm-documents/` folder — Documents referenced removed resources
+- `ssm-remediation-roles/` folder — Remediation roles no longer needed
+
+## Optional Security Services (Not Enabled)
+
+The following services can be enabled later based on requirements:
+
+| Service | Purpose | Cost Estimate | Config Location |
+|---------|---------|---------------|-----------------|
+| Amazon Macie | Sensitive data discovery in S3 | ~$1/account/month + scanning | `centralSecurityServices.macie.enable` |
+| Amazon Detective | Security investigation and visualization | ~$2/GB analyzed | `detective.enable` |
+| Amazon Inspector | Vulnerability scanning (EC2/ECR/Lambda) | ~$0.01/instance assessment | `inspector.enable` |
+| AWS Audit Manager | Automated compliance evidence collection | ~$1.25/resource-month | `auditManager.enable` |
+| GuardDuty Malware Protection | EBS malware scanning | ~$0.05/GB scanned | `guardduty.malwareProtection.enable` |
+| GuardDuty Runtime Monitoring | Container/EC2 runtime threat detection | Per-vCPU pricing | `guardduty.runtimeMonitoring.enable` |
+
+## Pre-Deployment Checklist
+
+- [ ] Update `HomeRegion` and `EnabledRegions` in replacements-config.yaml
+- [ ] Update email addresses in accounts-config.yaml
+- [ ] Update account IDs in accounts-config.yaml `accountIds` section
+- [ ] Verify Control Tower version matches `landingZone.version: "4.0"` in global-config.yaml
+- [ ] Confirm OU names match your AWS Organizations structure
+- [ ] Review security-config.yaml delegate admin settings (should be Audit account)
+- [ ] Verify iam-config.yaml Identity Center is commented out (managing via console)
+- [ ] Delete unused folders: `iam-policies/`, `ssm-documents/`, `ssm-remediation-roles/`
+
 ## References
 
 - [AWS LZA Documentation](https://awslabs.github.io/landing-zone-accelerator-on-aws/)
