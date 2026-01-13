@@ -4,8 +4,8 @@ globalReplacements:
     value: AWSAccelerator
   - key: HomeRegion
     type: String
-    value: us-east-1  # <-- UPDATE
+    value: us-east-1 # <-- UPDATE
   - key: EnabledRegions
     type: StringList
     value:
-      - "us-east-1"   # <-- UPDATE
+      - "us-east-1" # <-- UPDATE

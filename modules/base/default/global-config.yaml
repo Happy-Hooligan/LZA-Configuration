@@ -9,7 +9,7 @@
 ###############################################################################################################
 
 homeRegion: "{{ HomeRegion }}"
-enabledRegions: [ {{ EnabledRegions }} ]
+enabledRegions: { { EnabledRegions } }
 managementAccountAccessRole: AWSControlTowerExecution # Cross-account role for LZA resource orchestration
 
 # Global Tags For Supported Resources
@@ -85,26 +85,26 @@ controlTower:
     security:
       enableIdentityCenterAccess: true # Enables AWS IAM Identity Center
 
-###############################################################################################################
-# Control Tower Controls (Guardrails)                                                                         #
-# REMOVED: Additional controls beyond Control Tower defaults                                                  #
-# These are AWS Config rules that check for compliance. Each has cost implications.                           #
-# To re-enable, add controls with identifiers from:                                                           #
-# https://docs.aws.amazon.com/controltower/latest/controlreference/all-global-identifiers.html                #
-#                                                                                                             #
-# Example controls that were in the original config:                                                          #
-#   - CONFIG.CLOUDTRAIL.DT.5: CloudTrail logging S3 data events                                               #
-#   - CONFIG.LOGS.DT.1: CloudWatch Log Groups encrypted with KMS                                              #
-#   - CONFIG.IAM.DT.6: IAM groups have at least one user                                                      #
-#   - CONFIG.IAM.DT.5: Inline policies not in use                                                             #
-#   - CONFIG.EC2.DT.17: Internet gateways attached to authorized VPCs                                         #
-#   - AWS-GR_NO_UNRESTRICTED_ROUTE_TO_IGW: No public routes to IGW                                            #
-#   - CONFIG.SAGEMAKER.DT.3: SageMaker notebooks encrypted with KMS                                           #
-#   - CONFIG.SECURITYHUB.DT.1: Security Hub enabled                                                           #
-#   - BACKUP_PLAN_MIN_FREQUENCY_AND_MIN_RETENTION_CHECK: Backup frequency/retention                           #
-#   - BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED: Backup vault deletion protection                        #
-#   - CONFIG.EC2.DT.10: EC2 instances protected by backup plan                                                #
-###############################################################################################################
+  ###############################################################################################################
+  # Control Tower Controls (Guardrails)                                                                         #
+  # REMOVED: Additional controls beyond Control Tower defaults                                                  #
+  # These are AWS Config rules that check for compliance. Each has cost implications.                           #
+  # To re-enable, add controls with identifiers from:                                                           #
+  # https://docs.aws.amazon.com/controltower/latest/controlreference/all-global-identifiers.html                #
+  #                                                                                                             #
+  # Example controls that were in the original config:                                                          #
+  #   - CONFIG.CLOUDTRAIL.DT.5: CloudTrail logging S3 data events                                               #
+  #   - CONFIG.LOGS.DT.1: CloudWatch Log Groups encrypted with KMS                                              #
+  #   - CONFIG.IAM.DT.6: IAM groups have at least one user                                                      #
+  #   - CONFIG.IAM.DT.5: Inline policies not in use                                                             #
+  #   - CONFIG.EC2.DT.17: Internet gateways attached to authorized VPCs                                         #
+  #   - AWS-GR_NO_UNRESTRICTED_ROUTE_TO_IGW: No public routes to IGW                                            #
+  #   - CONFIG.SAGEMAKER.DT.3: SageMaker notebooks encrypted with KMS                                           #
+  #   - CONFIG.SECURITYHUB.DT.1: Security Hub enabled                                                           #
+  #   - BACKUP_PLAN_MIN_FREQUENCY_AND_MIN_RETENTION_CHECK: Backup frequency/retention                           #
+  #   - BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED: Backup vault deletion protection                        #
+  #   - CONFIG.EC2.DT.10: EC2 instances protected by backup plan                                                #
+  ###############################################################################################################
   controls: []
 
 ###############################################################################################################
@@ -156,7 +156,7 @@ controlTower:
 ###############################################################################################################
 logging:
   account: LogArchive # Centralizes log aggregation - must exist in accounts-config.yaml
-  
+
   # CloudTrail - Disabled because Control Tower manages the organization trail
   cloudtrail:
     enable: false
@@ -170,7 +170,7 @@ logging:
       sendToCloudWatchLogs: false
       apiErrorRateInsight: false
       apiCallRateInsight: false
-  
+
   # Session Manager - Disabled for cost savings in test environment
   # This logs SSH/RDP sessions via AWS Systems Manager
   sessionManager:
@@ -178,7 +178,7 @@ logging:
     sendToS3: false
     # attachPolicyToIamRoles: # Removed - no EC2 instances in test
     #   - EC2-Default-SSM-Role
-  
+
   ###############################################################################################################
   # CloudWatch Logs Dynamic Partitioning                                                                       #
   # REMOVED: Log streaming/filtering disabled for test environment                                             #
@@ -188,7 +188,7 @@ logging:
   #   cloudwatchLogs:                                                                                          #
   #     dynamicPartitioning: dynamic-partitioning/log-filters.json                                             #
   ###############################################################################################################
-  
+
   # Access Log Bucket - S3 server access logs
   accessLogBucket:
     lifecycleRules:
@@ -196,7 +196,7 @@ logging:
         abortIncompleteMultipartUpload: 7
         expiration: 90 # Reduced for test - Production: 1000+
         noncurrentVersionExpiration: 90
-  
+
   # Central Log Bucket - Aggregated logs from all accounts
   centralLogBucket:
     lifecycleRules:

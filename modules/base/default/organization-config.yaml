@@ -19,8 +19,8 @@ organizationalUnits:
   - name: Closed-Accounts
     ignore: true # LZA won't manage accounts in this OU
   - name: ControlTower-Workloads
-  - name: ControlTower-Workloads/High
-  - name: ControlTower-Workloads/Low
+  - name: ControlTower-Workloads/FISMA-High
+  - name: ControlTower-Workloads/FISMA-Moderate
   - name: Delegate-Administrator
   - name: Finance
   - name: Networking
